@@ -104,60 +104,12 @@ function initMiniCalendar() {
             }
         ],
 
-        dateClick: async function(info) {
-            const dateStr = info.dateStr; 
-            
-            Swal.fire({
-                title: '데이터를 불러오는 중...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+        dateClick: showDaySummary,
 
-            try {
-                const { data: schedules } = await window.supabaseClient.from('recommended_schedules').select('*').like('start_time', `${dateStr}%`);
-                const { data: datedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').eq('target_date', dateStr);
-                const { data: undatedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').is('target_date', null).gte('created_at', `${dateStr}T00:00:00`).lte('created_at', `${dateStr}T23:59:59`);
-                const todos = [...(datedTodos || []), ...(undatedTodos || [])];
-                const { data: routines } = await window.supabaseClient.from('routines').select('*');
-
-                const createListHTML = (items, type) => {
-                    if (!items || items.length === 0) return `<div class="empty-summary">등록된 항목이 없습니다.</div>`;
-                    
-                    return items.map(item => {
-                        if (type === 'schedule') {
-                            const time = item.start_time.includes('T') ? item.start_time.split('T')[1].substring(0, 5) : '종일';
-                            return `<div class="summary-item">⏰ ${time} - <strong>${item.schedule_title}</strong></div>`;
-                        } else if (type === 'todo') {
-                            const isDone = item.is_completed; 
-                            const title = item.task_content || '내용 없음'; 
-                            return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '✅' : '⬜️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
-                        } else if (type === 'routine') {
-                            const isDone = item.is_completed; 
-                            const title = item.routine_title || item.title || item.routine_name || '진행중인 루틴'; 
-                            return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '🔁' : '▶️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
-                        }
-                    }).join('');
-                };
-
-                Swal.fire({
-                    title: `${dateStr.split('-')[1]}월 ${dateStr.split('-')[2]}일 요약`,
-                    html: `
-                        <div class="summary-container">
-                            <div class="summary-section"><div class="summary-title" style="color: #4361ee;">🗓️ 오늘의 일정</div>${createListHTML(schedules, 'schedule')}</div>
-                            <div class="summary-section"><div class="summary-title" style="color: #e63946;">🎯 투두 완료 현황</div>${createListHTML(todos, 'todo')}</div>
-                            <div class="summary-section"><div class="summary-title" style="color: #2ecc71;">🔁 루틴 달성 현황</div>${createListHTML(routines, 'routine')}</div>
-                        </div>
-                    `,
-                    position: 'bottom',
-                    showConfirmButton: false,
-                    showCloseButton: true,
-                    customClass: { popup: 'summary-bottom-sheet' }
-                });
-
-            } catch (error) {
-                console.error('요약 데이터 로드 실패:', error);
-                Swal.fire('오류', '데이터를 불러오지 못했습니다.', 'error');
-            }
+        // 공휴일 등 일정을 눌러도 구글 캘린더로 넘어가지 않고, 그날 요약을 보여 줌
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            showDaySummary({ dateStr: info.event.startStr.slice(0, 10) });
         }
     });
     
@@ -308,5 +260,62 @@ async function logout() {
     if(window.supabaseClient) {
         await window.supabaseClient.auth.signOut();
         window.location.href = "../index.html"; // 로그아웃 후 소개 페이지(첫 화면)로
+    }
+}
+
+// 홈 캘린더에서 날짜(또는 일정)를 눌렀을 때 그날 일정·할 일 요약
+async function showDaySummary(info) {
+    const dateStr = info.dateStr; 
+    
+    Swal.fire({
+        title: '데이터를 불러오는 중...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        const { data: schedules } = await window.supabaseClient.from('recommended_schedules').select('*').like('start_time', `${dateStr}%`);
+        const { data: datedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').eq('target_date', dateStr);
+        const { data: undatedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').is('target_date', null).gte('created_at', `${dateStr}T00:00:00`).lte('created_at', `${dateStr}T23:59:59`);
+        const todos = [...(datedTodos || []), ...(undatedTodos || [])];
+        const { data: routines } = await window.supabaseClient.from('routines').select('*');
+
+        const createListHTML = (items, type) => {
+            if (!items || items.length === 0) return `<div class="empty-summary">등록된 항목이 없습니다.</div>`;
+            
+            return items.map(item => {
+                if (type === 'schedule') {
+                    const time = item.start_time.includes('T') ? item.start_time.split('T')[1].substring(0, 5) : '종일';
+                    return `<div class="summary-item">⏰ ${time} - <strong>${item.schedule_title}</strong></div>`;
+                } else if (type === 'todo') {
+                    const isDone = item.is_completed; 
+                    const title = item.task_content || '내용 없음'; 
+                    return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '✅' : '⬜️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
+                } else if (type === 'routine') {
+                    const isDone = item.is_completed; 
+                    const title = item.routine_title || item.title || item.routine_name || '진행중인 루틴'; 
+                    return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '🔁' : '▶️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
+                }
+            }).join('');
+        };
+
+        Swal.fire({
+            title: `${dateStr.split('-')[1]}월 ${dateStr.split('-')[2]}일 요약`,
+            html: `
+                <div class="summary-container">
+                    <div class="summary-section"><div class="summary-title" style="color: #4361ee;">🗓️ 오늘의 일정</div>${createListHTML(schedules, 'schedule')}</div>
+                    <div class="summary-section"><div class="summary-title" style="color: #e63946;">🎯 투두 완료 현황</div>${createListHTML(todos, 'todo')}</div>
+                    <div class="summary-section"><div class="summary-title" style="color: #2ecc71;">🔁 루틴 달성 현황</div>${createListHTML(routines, 'routine')}</div>
+                </div>
+            `,
+            position: 'bottom',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: { popup: 'summary-bottom-sheet' }
+        });
+
+    } catch (error) {
+        console.error('요약 데이터 로드 실패:', error);
+        Swal.fire('오류', '데이터를 불러오지 못했습니다.', 'error');
     }
 }

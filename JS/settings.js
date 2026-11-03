@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             displayEl.innerText = (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email; // 없으면 구글 이름 → 이메일
         }
+        loadInquiries();
     }
 });
 
@@ -59,13 +60,47 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
 }
 
-// 문의 등록 가상 모의 핸들러
-function submitInquiry() {
-    const text = document.getElementById('inquiry-text').value.trim();
-    if(!text) return alert("문의하실 내용을 입력해주세요.");
-    
-    alert("문의가 성공적으로 접수되었습니다.\n빠른 시일 내에 이메일로 답변 드리겠습니다!");
+// 💬 1:1 문의: inquiries 테이블에 저장 → 운영자가 Supabase에서 답변을 적으면 '내 문의 내역'에 표시
+function escapeSettingsHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function submitInquiry() {
+    const textEl = document.getElementById('inquiry-text');
+    const btn = document.getElementById('inquiry-submit');
+    const text = textEl.value.trim();
+    if (!text) return alert("문의하실 내용을 입력해주세요.");
+    if (text.length > 2000) return alert("문의 내용은 2000자 이내로 적어주세요.");
+    if (!currentUser) return alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+
+    btn.disabled = true; btn.textContent = '접수 중...';
+    const { error } = await window.supabaseClient.from('inquiries').insert({ content: text, email: currentUser.email });
+    btn.disabled = false; btn.textContent = '문의 접수하기';
+
+    if (error) {
+        console.error('문의 저장 실패:', error);
+        return alert("문의를 접수하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    }
+    alert(`문의가 접수되었습니다.\n답변은 아래 '내 문의 내역'에서 확인할 수 있어요.`);
     closeModal('inquiry-modal');
+    loadInquiries();
+}
+
+async function loadInquiries() {
+    const box = document.getElementById('inquiry-list');
+    if (!box || !currentUser) return;
+    const { data, error } = await window.supabaseClient
+        .from('inquiries').select('content, answer, answered_at, created_at')
+        .order('created_at', { ascending: false }).limit(10);
+    if (error) { console.error('문의 내역 불러오기 실패:', error); box.innerHTML = ''; return; }
+    if (!data || data.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="inquiry-list-title">내 문의 내역</div>' + data.map(q => {
+        const date = String(q.created_at).slice(0, 10);
+        const status = q.answer ? '<span class="inquiry-status done">답변 완료</span>' : '<span class="inquiry-status">답변 대기</span>';
+        const answer = q.answer ? `<div class="inquiry-answer"><b>답변</b> ${escapeSettingsHtml(q.answer)}</div>` : '';
+        return `<div class="inquiry-item"><div class="inquiry-head">${status}<span class="inquiry-date">${date}</span></div>
+            <div class="inquiry-q">${escapeSettingsHtml(q.content)}</div>${answer}</div>`;
+    }).join('');
 }
 
 // 인증 해제 및 리다이렉트
