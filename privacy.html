@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인정보처리방침 · Sync Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#ffffff;--bg-soft:#f7f7f5;--fg:#1b1b1a;--fg-2:#5c5b58;--fg-3:#9a9893;--line:#e8e7e4;--accent:#4361ee}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:16px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{max-width:760px;margin:0 auto;padding:48px 16px 80px}
+a{color:var(--accent)}
+.back{display:inline-block;font-size:14px;color:var(--fg-2);text-decoration:none;margin-bottom:28px}
+.back:hover{color:var(--fg)}
+h1{font-size:clamp(26px,5vw,34px);letter-spacing:-.03em;margin:0 0 8px}
+.date{color:var(--fg-3);font-size:14px;margin:0 0 36px}
+h2{font-size:19px;letter-spacing:-.02em;margin:36px 0 10px;padding-top:24px;border-top:1px solid var(--line)}
+p,li{color:var(--fg-2)}
+ul{padding-left:20px;margin:8px 0}
+li{margin:4px 0}
+b{color:var(--fg)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg-soft);color:var(--fg);font-weight:700;white-space:nowrap}
+td{color:var(--fg-2)}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="index.html">← Sync Day 소개로 돌아가기</a>
+  <h1>개인정보처리방침</h1>
+  <p class="date">시행일: 2026년 11월 3일</p>
+
+  <p>Sync Day(싱크데이, 이하 "서비스")는 목원대학교 컴퓨터융합학부 학생 팀이 만든 개인 일정 관리 웹 서비스입니다. 서비스는 일정 관리에 꼭 필요한 정보만 받고, 아래에 적은 목적 외에는 쓰지 않습니다.</p>
+
+  <h2>1. 받는 정보</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th>구분</th><th>항목</th><th>받는 방법</th></tr>
+    <tr><td>계정 정보</td><td>구글 계정의 이메일 주소, 이름(닉네임으로 사용)</td><td>구글 로그인 시 구글로부터 전달받음</td></tr>
+    <tr><td>서비스 이용 기록</td><td>일정, 할 일, 루틴, 목표, 완료 기록, 휴무일 설정</td><td>사용자가 직접 입력하거나 AI 챗봇으로 생성</td></tr>
+  </table>
+  </div>
+  <p>비밀번호는 받지 않습니다. 로그인은 구글 계정으로만 이뤄집니다.</p>
+
+  <h2>2. 쓰는 목적</h2>
+  <ul>
+    <li>로그인과 본인 확인</li>
+    <li>일정·할 일·루틴을 저장하고 보여 주기</li>
+    <li>AI가 목표를 날짜별 할 일로 나누고, 미룬 할 일을 더 작게 나누어 주기</li>
+    <li>최근 완료 기록과 목표 진행률 보여 주기</li>
+  </ul>
+
+  <h2>3. 외부 서비스</h2>
+  <p>서비스는 아래 외부 서비스를 이용합니다. 정보를 판매하거나 광고에 쓰지 않습니다.</p>
+  <ul>
+    <li><b>Supabase</b>: 로그인 처리와 데이터 저장. 각 사용자는 본인 데이터에만 접근할 수 있도록 설정되어 있습니다.</li>
+    <li><b>Google 로그인</b>: 구글 계정으로 로그인.</li>
+    <li><b>Google Gemini API</b>: AI 챗봇에 입력한 <b>목표, 마감일, 하루 가능 시간, 휴무 요일</b>과 미루기 코칭을 요청한 <b>할 일 내용과 그 목표 이름</b>을 보내 계획을 만듭니다. 이름이나 이메일은 보내지 않습니다.</li>
+    <li><b>Google Calendar API</b>: 캘린더에 한국 공휴일을 표시합니다. 사용자 정보는 보내지 않습니다.</li>
+  </ul>
+
+  <h2>4. 보관 기간과 삭제</h2>
+  <ul>
+    <li>정보는 사용자가 서비스를 이용하는 동안 보관합니다.</li>
+    <li>일정, 할 일, 루틴, 목표는 서비스 화면에서 언제든 직접 지울 수 있습니다.</li>
+    <li>계정과 모든 데이터를 지우고 싶으면 아래 연락처로 요청해 주세요. 확인 후 지체 없이 삭제합니다.</li>
+  </ul>
+
+  <h2>5. 문의</h2>
+  <p>개인정보와 관련한 문의나 삭제 요청은 <a href="mailto:kimchaebin61@gmail.com">kimchaebin61@gmail.com</a> 으로 보내 주세요.</p>
+
+  <footer>Sync Day 싱크데이 · 목원대학교 컴퓨터융합학부</footer>
+</main>
+</body>
+</html>
