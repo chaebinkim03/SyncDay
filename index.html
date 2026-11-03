@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SyncDay</title>
+<title>Sync Day 싱크데이</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -208,8 +208,47 @@ section.blk{padding-block:96px}
 .cta .btn{margin-top:28px}
 footer{border-top:1px solid var(--line);padding-block:28px;font-size:13.5px;color:var(--fg-3)}
 footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ===== motion: 첫 화면 등장, 떠다니는 할 일 카드, 스크롤 등장 ===== */
+.hero{position:relative;overflow:hidden}
+.hero .wrap{position:relative}
+.motion .hero h1,.motion .hero .lede,.motion .hero .ctas{opacity:0;animation:heroIn .8s cubic-bezier(.2,.7,.2,1) forwards}
+.motion .hero .lede{animation-delay:.15s}
+.motion .hero .ctas{animation-delay:.3s}
+@keyframes heroIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero h1 .hl::after{transform-origin:left center}
+.motion .hero h1 .hl::after{transform:scaleX(0);animation:hlGrow .7s cubic-bezier(.2,.7,.2,1) .7s forwards}
+@keyframes hlGrow{to{transform:scaleX(1)}}
+
+.floaters{position:absolute;inset:0;pointer-events:none;z-index:0}
+.fl{position:absolute;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:13.5px;font-weight:500;color:var(--fg);box-shadow:var(--shadow);white-space:nowrap;opacity:0}
+.fl small{font-family:var(--f-mono);font-size:11.5px;color:var(--fg-3);font-weight:500}
+.fl .ck{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line);flex:none;display:grid;place-items:center}
+.fl.done .ck{background:var(--c-green);border-color:var(--c-green)}
+.fl.done .ck::after{content:"";width:7px;height:4px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.fl.done span.t{text-decoration:line-through;color:var(--fg-3)}
+.fl .tag{font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px}
+.f1{left:2%;top:18%}.f2{left:5%;top:58%}.f3{right:2%;top:14%}.f4{right:4%;top:54%}.f5{left:14%;top:84%}.f6{right:13%;top:82%}
+.motion .fl{animation:flIn .7s ease both,flFloat 6s ease-in-out infinite}
+.motion .f1{animation-delay:.9s,.9s}.motion .f2{animation-delay:1.05s,2.1s}.motion .f3{animation-delay:1.0s,1.4s}
+.motion .f4{animation-delay:1.15s,2.8s}.motion .f5{animation-delay:1.25s,3.3s}.motion .f6{animation-delay:1.3s,1.8s}
+.fl:not(.done) .ck{transition:background .3s,border-color .3s}
+@keyframes flIn{from{opacity:0;translate:0 14px}to{opacity:.95;translate:0 0}}
+@keyframes flFloat{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-10px) rotate(var(--r,0deg))}}
+.f1{--r:-3deg}.f2{--r:2deg}.f3{--r:3deg}.f4{--r:-2deg}.f5{--r:-1.5deg}.f6{--r:2deg}
+@media (max-width:1180px){.f2,.f4{display:none}.f1{top:6%}.f3{top:6%}}
+@media (max-width:860px){.floaters{display:none}}
+html:not(.motion) .fl{opacity:.95}
+
+.motion .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.motion .reveal.on{opacity:1;transform:none}
+.motion .mini-app{animation:bob 4s ease-in-out infinite}
+.motion .mini-app:nth-child(2){animation-delay:.5s}.motion .mini-app:nth-child(3){animation-delay:1s}.motion .mini-app:nth-child(4){animation-delay:1.5s}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.motion .qbubble.faint{animation:bob 5s ease-in-out .8s infinite}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
+<script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('motion')}catch(e){}</script>
 </head>
 <body>
 
@@ -229,6 +268,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </nav>
 
 <header class="hero" id="top">
+  <div class="floaters" aria-hidden="true">
+    <div class="fl f1"><span class="ck"></span><span class="t">영단어 40개 암기</span><small>20분</small></div>
+    <div class="fl f2 done"><span class="ck"></span><span class="t">아침 스트레칭</span><small>루틴</small></div>
+    <div class="fl f3"><span class="tag k-ev">일정</span><span class="t">캡스톤 회의</span><small>14:00</small></div>
+    <div class="fl f4"><span class="ck"></span><span class="t">보고서 목차 정리</span><small>40분</small></div>
+    <div class="fl f5"><span class="tag k-td">AI</span><span class="t">D-30 · 오늘 1개만</span></div>
+    <div class="fl f6 done"><span class="ck"></span><span class="t">RC 파트5 30문제</span><small>40분</small></div>
+  </div>
   <div class="wrap">
     <h1>목표는 크게,<br>오늘 할 일은 <span class="hl">작게.</span></h1>
     <p class="lede">싱크데이는 AI가 목표를 매일 실천할 수 있는 할 일로 쪼개 주는 올인원 일정 관리 웹 서비스입니다. 일정, 할 일, 루틴을 한 화면에서 관리하세요.</p>
@@ -489,6 +536,39 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 </script>
 <script>
 (function(){
+
+  // ===== 스크롤 등장 + AI 예시 자동 실행 =====
+  var root=document.documentElement;
+  if(root.classList.contains('motion')&&'IntersectionObserver' in window){
+    var groups=[
+      ['#why .eyebrow,#why .sh',0],['.prob .pcard',.12],['.solve',0],
+      ['#ai .eyebrow,#ai .sh,#ai .sub',.08],['.ai-in',0],['.ai-out',.12],
+      ['#features .eyebrow,#features .sh,#features .sub,#features .tabs',.06],['.panel',0],
+      ['.goal',.12],['.icol',.12],['.member',.1],['.cta h2,.cta p,.cta .btn',.1]
+    ];
+    var targets=[];
+    groups.forEach(function(g){
+      [].forEach.call(document.querySelectorAll(g[0]),function(el,i){
+        if(el.classList.contains('reveal'))return;
+        el.classList.add('reveal');el.style.setProperty('--d',(i*g[1]).toFixed(2)+'s');targets.push(el);
+      });
+    });
+    // 이미 화면 안에 있는 것은 바로 보이게
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+    targets.forEach(function(t){io.observe(t)});
+    // 숨겨진 탭 패널이 열릴 때는 바로 표시
+    [].forEach.call(document.querySelectorAll('.tab'),function(t){t.addEventListener('click',function(){[].forEach.call(document.querySelectorAll('.panel'),function(p){p.classList.add('on')})})});
+
+    // AI 예시: 처음 화면에 보일 때 한 번 자동 실행
+    var aiOut=document.querySelector('.ai-out'),ran=false;
+    if(aiOut){
+      var io2=new IntersectionObserver(function(es){if(!ran&&es[0].isIntersecting){ran=true;io2.disconnect();setTimeout(function(){document.getElementById('goBtn').click()},350)}},{threshold:.35});
+      io2.observe(aiOut);
+    }
+    // 첫 화면 카드: 체크 안 된 할 일이 잠시 뒤 체크되는 작은 움직임
+    setTimeout(function(){var f=document.querySelector('.fl.f1');if(f)f.classList.add('done')},3200);
+  }
+
   // nav border on scroll
   var nav=document.getElementById('nav');
   addEventListener('scroll',function(){nav.classList.toggle('scrolled',scrollY>8)},{passive:true});
