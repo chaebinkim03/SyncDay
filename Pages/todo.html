@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SyncDay</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/pages.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="app-layout">
+    <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
+    <div id="main-container">
+        <nav id="sidebar-left">
+            <h3>메뉴</h3>
+            <a href="main.html" class="menu-item">홈</a>
+            <a href="schedule.html" class="menu-item">캘린더</a>
+            <a href="todo.html" class="menu-item active">투두</a>
+            <a href="habit.html" class="menu-item">루틴</a>
+            <a href="settings.html" class="menu-item">설정</a>
+            <div class="sidebar-profile">
+                <div id="user-email-display" class="user-email">로딩중...</div>
+                <button onclick="logout()" class="logout-btn">로그아웃</button>
+            </div>
+        </nav>
+        <main id="main-content">
+            <!-- 미루기 코칭: 자꾸 미루거나 오래 밀린 할 일이 있을 때만 보임 -->
+            <div id="coach-section" class="coach-section" hidden></div>
+
+            <!-- 내 목표: AI 챗봇으로 만든 계획을 목표 단위로 확인·삭제 -->
+            <div class="dashboard-widget">
+                <h3>내 목표</h3>
+                <div id="goal-list" class="goal-list"><p class="empty-msg">불러오는 중...</p></div>
+            </div>
+
+            <div class="dashboard-widget" style="min-height: 500px;">
+                <h3 style="margin-bottom: 20px;">투두 관리</h3>
+
+                <div class="todo-form" style="display: flex; gap: 10px; margin-bottom: 30px;">
+                    <input type="text" id="todo-input" placeholder="새로운 할 일을 입력하세요" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+                    <button onclick="addTodo()" style="padding: 12px 24px; background: #5a67d8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px;">추가</button>
+                </div>
+                
+                <ul id="todo-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+            </div>
+        </main>
+    </div>
+    <script src="../JS/supabase.js"></script>
+    <script src="../JS/routine.js"></script>
+    <script src="../JS/todo.js"></script>
+    <script src="../JS/main.js"></script>
+    <script src="../JS/chat.js"></script>
+</body>
+</html>

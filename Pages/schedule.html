@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SyncDay - 캘린더 일정 관리</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/pages.css">
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        .filter-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .filter-buttons { display: flex; gap: 8px; }
+        .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .filter-btn.active { border-color: #007bff; color: #007bff; background: #f0f7ff; }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+    </style>
+</head>
+<body class="app-layout">
+    <header id="header">
+        <h1 class="header-logo">SyncDay</h1>
+    <button class="header-logout" onclick="logout()">로그아웃</button></header>
+
+    <div id="main-container">
+        <nav id="sidebar-left">
+            <h3>메뉴</h3>
+            <a href="main.html" class="menu-item">홈</a>
+            <a href="schedule.html" class="menu-item active">캘린더</a>
+            <a href="todo.html" class="menu-item">투두</a>
+            <a href="habit.html" class="menu-item">루틴</a>
+            <a href="settings.html" class="menu-item">설정</a>
+
+            <div class="sidebar-profile">
+                <div id="user-email-display" class="user-email">로그인 정보 로딩중...</div>
+                <button onclick="logout()" class="logout-btn">로그아웃</button>
+            </div>
+        </nav>
+
+        <main id="main-content">
+            <div class="dashboard-widget schedule-widget" style="height: calc(100vh - 150px); display: flex; flex-direction: column; margin-bottom: 0; padding: 25px; width: 100%; box-sizing: border-box;">
+                    
+                <div class="schedule-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
+                    <h3 style="margin: 0; font-size: 1.25rem;">전체 일정 관리</h3>
+                        
+                    <div class="schedule-filters" style="display: flex; gap: 8px;">
+                        <button class="filter-btn active-filter" onclick="filterEvents('all', this)" style="padding: 5px 12px; border-radius: 20px; border: 2px solid #4361ee; color: #4361ee; background: white; cursor: pointer; font-weight: bold; transition: all 0.2s;">전체보기</button>
+                        <button class="filter-btn" onclick="filterEvents('#4361ee', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🔵 기본</button>
+                        <button class="filter-btn" onclick="filterEvents('#e63946', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🔴 중요</button>
+                        <button class="filter-btn" onclick="filterEvents('#2ecc71', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🟢 개인</button>
+                        <button class="filter-btn" onclick="openRestDaySettings()" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; font-weight: bold; margin-left: 10px;">⚙️ 휴무일 설정</button>
+                    </div>
+
+                </div> <div id="calendar" style="flex: 1; width: 100%; min-height: 500px;"></div>
+                
+            </div>
+        </main>
+    </div> 
+    
+    <script src="../JS/supabase.js"></script>
+    <script src="../JS/routine.js"></script>
+    <script src="../JS/main.js"></script>
+    <script src="../JS/schedule.js"></script>
+    <script src="../JS/chat.js"></script>
+</body>
+</html>

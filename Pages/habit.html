@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SyncDay</title>
+    <link rel="stylesheet" href="../CSS/common.css">
+    <link rel="stylesheet" href="../CSS/pages.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="app-layout">
+    <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
+    <div id="main-container">
+        <nav id="sidebar-left">
+            <h3>메뉴</h3>
+            <a href="main.html" class="menu-item">홈</a>
+            <a href="schedule.html" class="menu-item">캘린더</a>
+            <a href="todo.html" class="menu-item">투두</a>
+            <a href="habit.html" class="menu-item active">루틴</a>
+            <a href="settings.html" class="menu-item">설정</a>
+            <div class="sidebar-profile">
+                <div id="user-email-display" class="user-email">로딩중...</div>
+                <button onclick="logout()" class="logout-btn">로그아웃</button>
+            </div>
+        </nav>
+        <main id="main-content">
+            <div class="dashboard-widget" style="min-height: 500px;">
+                <h3 style="margin-bottom: 20px;">루틴 관리</h3>
+
+                <div class="routine-form" style="display: flex; gap: 15px; margin-bottom: 30px; align-items: center;">
+                    <input type="text" id="routine-input" placeholder="새로운 루틴을 입력하세요" style="flex: 0.7; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;">
+                    
+                    <div class="routine-freq" style="display: flex; gap: 15px; align-items: center; flex: 0.3; justify-content: center; white-space: nowrap;">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 15px; margin: 0;">
+                            <input type="radio" name="freq-input" value="매일" checked> 매일
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 15px; margin: 0;">
+                            <input type="radio" name="freq-input" value="평일"> 평일
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 15px; margin: 0;">
+                            <input type="radio" name="freq-input" value="주말"> 주말
+                        </label>
+                    </div>
+
+                    <button onclick="addHabit()" style="padding: 12px 24px; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; white-space: nowrap;">추가</button>
+                </div>
+
+                <ul id="routine-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+            </div>
+        </main>
+    </div>
+    <script src="../JS/supabase.js"></script>
+    <script src="../JS/routine.js"></script>
+    <script src="../JS/habit.js"></script>
+    <script src="../JS/main.js"></script>
+    <script src="../JS/chat.js"></script>
+</body>
+</html>

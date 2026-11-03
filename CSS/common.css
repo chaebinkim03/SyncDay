@@ -1,0 +1,56 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+body, html { margin: 0; padding: 0; background-color: #f8fafc; color: #1E293B; height: 100vh; overflow: hidden; /* 이중 스크롤 방지 */ }
+.app-layout { display: flex; flex-direction: column; height: 100vh; }
+
+/* 헤더 */
+#header { height: 70px; background: white; padding: 0 30px; display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; z-index: 10; }
+.header-logo { font-size: 1.5rem; font-weight: 800; color: #4361ee; margin: 0; }
+
+/* 메인 컨테이너 */
+#main-container { display: flex; flex: 1; overflow: hidden; }
+
+/* 왼쪽 메뉴바 */
+#sidebar-left { width: 220px; background: white; padding: 20px 15px; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; z-index: 5; }
+#sidebar-left h3 { font-size: 0.9rem; color: #64748b; margin: 0 0 15px 10px; font-weight: 600; }
+.menu-item { display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 8px; text-decoration: none; color: #475569; font-weight: 600; font-size: 0.95rem; margin-bottom: 5px; transition: 0.2s; }
+.menu-item:hover { background: #f1f5f9; }
+.menu-item.active { background: #4361ee; color: white; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+
+/* 하단 프로필 */
+.sidebar-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
+.user-email { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; word-break: break-all; }
+.logout-btn { width: 100%; background: #f1f5f9; color: #475569; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.logout-btn:hover { background: #e2e8f0; color: #dc2626;}
+
+/* 중앙 화면 영역 */
+#main-content { flex: 1; padding: 30px; background-color: #f8fafc; overflow-y: auto; /* 여기만 스크롤 허용 */ }
+
+/* =========================================================
+   모바일 반응형 (화면 폭 768px 이하)
+   - 왼쪽 메뉴 → 화면 아래 탭바
+   - 닉네임·로그아웃은 상단 헤더의 로그아웃 버튼으로 대신
+   ========================================================= */
+.header-logout { display: none; }
+
+@media (max-width: 768px) {
+    .app-layout { height: 100vh; height: 100dvh; }
+    #header { height: 56px; padding: 0 16px; justify-content: space-between; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; }
+    .header-logo { font-size: 1.25rem; }
+    .header-logout { display: block; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; padding: 7px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+
+    #main-container { flex-direction: column; }
+    #main-content { padding: 16px; padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); overflow-x: hidden; }
+
+    #sidebar-left {
+        position: fixed; left: 0; right: 0; bottom: 0; width: 100%;
+        flex-direction: row; gap: 4px;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+        border-right: none; border-top: 1px solid #e2e8f0;
+        box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06); z-index: 50;
+    }
+    #sidebar-left h3, .sidebar-profile { display: none; }
+    .menu-item { flex: 1; justify-content: center; margin: 0; padding: 12px 2px; font-size: 0.85rem; border-radius: 10px; }
+    .menu-item.active { box-shadow: none; }
+}

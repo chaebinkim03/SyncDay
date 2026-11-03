@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sync Day 싱크데이</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: Notion식 단일 컬럼 랜딩 — 큰 헤드라인, 제품 목업, 연한 색 타일 위의 기능 쇼케이스 */
+:root{
+  --bg:#ffffff; --bg-soft:#f7f7f5; --fg:#1b1b1a; --fg-2:#5c5b58; --fg-3:#9a9893; --line:#e8e7e4;
+  --accent:#2c6be0; --accent-ink:#ffffff; --accent-soft:#e8f0fc;
+  --t-blue:#e8f0fc; --t-red:#fcecea; --t-yellow:#fbf3dc; --t-green:#e7f3ec; --t-purple:#f1ebfa;
+  --c-blue:#2c6be0; --c-red:#cf4a44; --c-yellow:#b98222; --c-green:#3f7d5a; --c-purple:#8a5cb5;
+  --card:#ffffff; --shadow:0 1px 2px rgba(20,20,20,.04),0 12px 32px -12px rgba(20,20,20,.14);
+  --f-display:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box}
+:root{color-scheme:light}
+[hidden]{display:none!important}
+body{margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.03em}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav.scrolled{border-bottom-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:28px;height:60px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;letter-spacing:-.02em;text-decoration:none}
+.nav-links{display:flex;gap:4px;margin-right:auto}
+.nav-links a{text-decoration:none;font-size:15px;color:var(--fg-2);padding:6px 10px;border-radius:6px}
+.nav-links a:hover{background:var(--bg-soft);color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:700;font-size:15px;border-radius:8px;padding:9px 16px;border:0;cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .15s,background .15s}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--accent);padding-inline:6px}
+.btn-ghost:hover{text-decoration:underline}
+.btn-lg{font-size:17px;padding:12px 20px}
+@media (max-width:760px){.nav-links{display:none}.nav .wrap{justify-content:space-between}}
+
+@media (max-width:760px){.nav .wrap{gap:10px}.nav .brand{margin-right:auto}}
+/* hero */
+.hero{padding-block:88px 56px;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--fg-2);background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 6px}
+.badge b{background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:999px;padding:1px 8px;font-size:12px;white-space:nowrap;flex:none}
+.hero h1{font-size:clamp(40px,7.4vw,80px);font-weight:900;line-height:1.08;margin-top:22px}
+.hero h1 .hl{position:relative;white-space:nowrap}
+.hero h1 .hl::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.06em;height:.26em;background:var(--accent-soft);z-index:-1;border-radius:4px}
+.hero .lede{font-size:clamp(17px,2.1vw,21px);color:var(--fg-2);max-width:620px;margin:22px auto 0}
+.hero .ctas{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:30px;flex-wrap:wrap}
+.hero h1,.hero .lede,.hero .ctas,.hero .badge{position:relative;z-index:1}
+
+.dot{width:8px;height:8px;border-radius:3px;flex:none}
+/* sections */
+section.blk{padding-block:96px}
+.eyebrow{font-size:14px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+.sh{font-size:clamp(30px,4.6vw,48px);font-weight:900;line-height:1.18;margin-top:10px}
+.sub{font-size:18px;color:var(--fg-2);max-width:640px;margin-top:14px}
+.center{text-align:center}.center .sub{margin-inline:auto}
+
+/* problem */
+.prob{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:44px}
+.pcard{border-radius:16px;padding:30px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pcard h3{font-size:22px;font-weight:700}
+.pcard p{color:var(--fg-2)}
+.pcard.r{background:var(--t-red)} .pcard.y{background:var(--t-yellow)}
+.pcard .art{height:120px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qbubble{background:var(--card);border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:var(--shadow);font-weight:500}
+.qbubble.faint{opacity:.55;transform:rotate(-2deg)}
+.mini-app{width:58px;height:58px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--fg-2);text-align:center;line-height:1.2}
+.mini-app:nth-child(2){transform:rotate(5deg)} .mini-app:nth-child(3){transform:rotate(-4deg)} .mini-app:nth-child(4){transform:rotate(3deg)}
+.solve{margin-top:20px;border:1px solid var(--line);border-radius:16px;padding:24px 30px;display:flex;gap:18px;align-items:center}
+.solve .ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--accent);display:grid;place-items:center}
+.solve p{font-size:17px;min-width:0}
+.solve b{color:var(--accent)}
+@media (max-width:760px){.prob{grid-template-columns:minmax(0,1fr)}.solve{flex-direction:column;align-items:flex-start;padding:22px}}
+
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* AI demo */
+.ai{background:var(--bg-soft)}
+.ai-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px;align-items:start;margin-top:44px}
+.ai-in{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
+.ai-in label{font-size:13px;color:var(--fg-3);font-weight:500;display:block;margin-bottom:8px}
+.goal-chips{display:flex;flex-direction:column;gap:8px}
+.gchip{font:inherit;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;transition:.15s}
+.gchip:hover{border-color:var(--fg-3)}
+.gchip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.gchip b{font-weight:700;font-size:15.5px}
+.gchip small{font-family:var(--f-mono);font-size:12px;color:var(--fg-2);white-space:nowrap}
+.ai-in .go{width:100%;justify-content:center;margin-top:16px}
+.ai-steps{margin-top:18px;font-size:13.5px;color:var(--fg-2);display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid var(--line)}
+.ai-steps div{display:flex;gap:8px}
+.ai-steps span{color:var(--accent);font-weight:700;font-family:var(--f-mono);font-size:12px;padding-top:2px}
+.ai-out{min-width:0}
+.out-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.out-head h3{font-size:24px;font-weight:900}
+.out-head .note{font-size:12.5px;color:var(--fg-3)}
+.phases{display:flex;gap:4px;margin-top:16px;border-radius:10px;overflow:hidden}
+.ph{padding:10px 12px;font-size:13px;min-width:0}
+.ph b{display:block;font-size:14px}
+.ph span{color:var(--fg-2);font-size:12px}
+.ph:nth-child(1){background:var(--t-blue)}.ph:nth-child(2){background:var(--t-purple)}.ph:nth-child(3){background:var(--t-green)}
+.plan{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.plan-row{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);font-size:15px}
+.plan-row:last-child{border-bottom:0}
+.plan-row .when{font-family:var(--f-mono);font-size:12.5px;color:var(--fg-2)}
+.plan-row .dur{font-size:12.5px;color:var(--fg-3);white-space:nowrap}
+.plan-row.in{animation:rise .38s ease both}
+@keyframes rise{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.thinking{padding:22px 18px;font-size:14px;color:var(--fg-2);display:flex;gap:10px;align-items:center}
+.thinking i{width:7px;height:7px;border-radius:50%;background:var(--c-purple);display:block;animation:pulse 1s infinite}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@media (max-width:860px){.ai-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:480px){.plan-row{grid-template-columns:minmax(0,1fr) auto}.plan-row .when{grid-column:1/-1;margin-bottom:-8px}}
+
+/* feature tabs */
+.tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+.tab{font:inherit;font-weight:700;font-size:15px;background:transparent;border:1px solid var(--line);color:var(--fg-2);border-radius:999px;padding:9px 18px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.panel{margin-top:28px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:stretch}
+.ptext{padding:30px 8px 30px 0;display:flex;flex-direction:column;gap:14px}
+.ptext h3{font-size:28px;font-weight:900;line-height:1.25}
+.ptext p{color:var(--fg-2)}
+.ptext ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.ptext li{display:flex;gap:10px;font-size:15px}
+.ptext li::before{content:"";width:18px;height:18px;flex:none;margin-top:3px;border-radius:50%;background:var(--accent-soft) center/10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8'%3E%3Cpath d='M1 4l2.5 2.5L9 1' stroke='%232c6be0' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.pvis{border-radius:18px;padding:30px;display:flex;align-items:center;justify-content:center;min-height:380px;min-width:0}
+.pvis.blue{background:var(--t-blue)}.pvis.yellow{background:var(--t-yellow)}.pvis.green{background:var(--t-green)}
+.vcard{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:18px;width:100%;max-width:440px}
+.vcard h5{margin:0 0 12px;font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.vcard h5 small{font-weight:400;color:var(--fg-3);font-size:12px}
+.tl{display:flex;flex-direction:column;gap:8px}
+.tl-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.tl-row time{font-family:var(--f-mono);font-size:12px;color:var(--fg-3)}
+.kind{font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.k-ev{background:var(--t-blue);color:var(--c-blue)} .k-td{background:var(--t-purple);color:var(--c-purple)} .k-rt{background:var(--t-green);color:var(--c-green)}
+.merge{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:12.5px;color:var(--fg-2);flex-wrap:wrap}
+.merge s{opacity:.6}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fchip{font:inherit;font-size:12.5px;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--fg-2);border-radius:999px;padding:4px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fchip[aria-pressed="true"]{border-color:var(--fg);color:var(--fg);background:var(--bg-soft)}
+.cal14{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal14 .wd{font-size:11px;color:var(--fg-3);text-align:center}
+.cday{font:inherit;border:0;background:var(--bg-soft);border-radius:7px;min-height:58px;padding:4px;display:flex;flex-direction:column;gap:3px;cursor:pointer;text-align:left;color:var(--fg)}
+.cday .n{font-family:var(--f-mono);font-size:11px;color:var(--fg-2)}
+.cday.off{background:repeating-linear-gradient(-45deg,var(--bg-soft) 0 5px,var(--line) 5px 6px)}
+.cday.off .n::after{content:" 휴무";font-family:var(--f-body);font-weight:700;color:var(--fg-3)}
+.cday.off .pip{display:none}
+.pip{height:5px;border-radius:3px;transition:opacity .2s}
+.pip.hi{background:var(--c-red)} .pip.mid{background:var(--c-yellow)} .pip.lo{background:var(--c-blue)}
+.pip.hide{opacity:.12}
+.hint{font-size:12px;color:var(--fg-3);margin-top:10px}
+.coach-msg{display:flex;gap:10px;align-items:flex-start;background:var(--t-red);border-radius:10px;padding:12px;font-size:14px}
+.coach-msg strong{font-weight:700}
+.stack{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.task{border:1px solid var(--line);border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;gap:10px;font-size:14px;background:var(--bg)}
+.task small{color:var(--fg-3);white-space:nowrap;font-family:var(--f-mono);font-size:12px}
+.task.big{border-style:dashed}
+.task.new{animation:rise .35s ease both;border-color:var(--c-green)}
+.vcard .btn{margin-top:12px;font-size:14px;padding:8px 14px}
+@media (max-width:860px){.panel{grid-template-columns:minmax(0,1fr)}.ptext{padding:8px 0}.pvis{min-height:0;padding:20px}}
+
+/* goals */
+.goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:44px}
+.goal{border:1px solid var(--line);border-radius:16px;padding:26px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.goal .gi{width:42px;height:42px;border-radius:11px;display:grid;place-items:center}
+.goal:nth-child(1) .gi{background:var(--t-blue);color:var(--c-blue)}
+.goal:nth-child(2) .gi{background:var(--t-yellow);color:var(--c-yellow)}
+.goal:nth-child(3) .gi{background:var(--t-green);color:var(--c-green)}
+.goal h3{font-size:19px;font-weight:700;line-height:1.35}
+.goal p{color:var(--fg-2);font-size:15px}
+@media (max-width:860px){.goals{grid-template-columns:minmax(0,1fr)}}
+
+/* impact */
+.impact{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:44px}
+.icol{border-radius:18px;padding:32px;min-width:0}
+.icol.a{background:var(--t-purple)} .icol.b{background:var(--t-blue)}
+.icol h3{font-size:22px;font-weight:900}
+.icol ul{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-direction:column;gap:14px}
+.icol li{background:var(--card);border-radius:12px;padding:16px 18px;font-size:15.5px}
+@media (max-width:760px){.impact{grid-template-columns:minmax(0,1fr)}.icol{padding:22px}}
+
+/* team */
+.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:40px;max-width:780px;margin-inline:auto}
+.member{text-align:center;padding:24px 12px;border:1px solid var(--line);border-radius:16px}
+.avatar{width:72px;height:72px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:900;color:var(--fg)}
+.member:nth-child(1) .avatar{background:var(--t-blue)} .member:nth-child(2) .avatar{background:var(--t-yellow)} .member:nth-child(3) .avatar{background:var(--t-green)}
+.member b{display:block;font-size:17px}
+.member span{font-size:13.5px;color:var(--fg-3)}
+@media (max-width:520px){.team{grid-template-columns:minmax(0,1fr)}.member{display:flex;align-items:center;gap:14px;text-align:left;padding:14px}.avatar{margin:0;width:52px;height:52px;font-size:20px}}
+
+/* cta + footer */
+.cta{padding-block:110px;text-align:center}
+.cta h2{font-size:clamp(34px,6vw,64px);font-weight:900;line-height:1.12}
+.cta p{color:var(--fg-2);margin-top:16px;font-size:18px}
+.cta .btn{margin-top:28px}
+footer{border-top:1px solid var(--line);padding-block:28px;font-size:13.5px;color:var(--fg-3)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Sync Day 처음으로">
+      Sync Day
+    </a>
+    <div class="nav-links">
+      <a href="#ai">AI 스케줄링</a>
+      <a href="#features">기능</a>
+      <a href="#goals">목표</a>
+      <a href="#team">팀</a>
+    </div>
+    <a class="btn btn-primary" id="signup-btn" href="Login.html">회원가입</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1>목표는 크게,<br>오늘 할 일은 <span class="hl">작게.</span></h1>
+    <p class="lede">싱크데이는 AI가 목표를 매일 실천할 수 있는 할 일로 쪼개 주는 올인원 일정 관리 웹 서비스입니다. 일정, 할 일, 루틴을 한 화면에서 관리하세요.</p>
+    <div class="ctas">
+      <a class="btn btn-primary btn-lg" href="#features">주요 기능 보기</a>
+    </div>
+  </div>
+</header>
+
+<section class="blk" id="why">
+  <div class="wrap">
+    <div class="eyebrow">왜 만들었나요</div>
+    <h2 class="sh">목표는 세웠는데,<br>오늘 뭘 해야 할지 모르겠다면.</h2>
+    <div class="prob">
+      <div class="pcard r">
+        <div class="art">
+          <span class="qbubble">토익 800점 받기</span>
+          <span class="qbubble faint">그래서 오늘은 뭘 하지?</span>
+        </div>
+        <h3>계획 단계에서 멈추는 목표</h3>
+        <p>자기계발을 위해 목표를 세워도 "오늘 구체적으로 무엇을 할지" 정하는 단계에서 막혀 실제 실천으로 이어지지 못합니다.</p>
+      </div>
+      <div class="pcard y">
+        <div class="art">
+          <span class="mini-app">캘린더</span><span class="mini-app">투두</span><span class="mini-app">습관</span><span class="mini-app">메모</span>
+        </div>
+        <h3>여러 앱에 흩어진 기록</h3>
+        <p>일정, 투두리스트, 습관 기능이 서로 다른 앱에 나뉘어 있어 이를 오가며 관리하는 일 자체가 번거롭습니다.</p>
+      </div>
+    </div>
+    <div class="solve">
+      <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7z" fill="var(--accent-ink)"/></svg></div>
+      <p>싱크데이는 <b>AI로 목표를 실행 단위로 자동 분해, 스케줄링</b>하고, 모든 개인 일정을 <b>한 곳에서 통합 관리</b>할 수 있도록 만든 올인원 웹 서비스입니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="blk ai" id="ai">
+  <div class="wrap">
+    <div class="eyebrow">핵심 기능 · AI 지능형 스케줄링</div>
+    <h2 class="sh">목표와 마감일만 입력하면<br>매일의 할 일이 투두에 채워집니다.</h2>
+    <p class="sub">Google Gemini API가 목표를 분석해 마감일부터 거꾸로 계산하고, 매일 실천할 수 있는 세부 투두로 나누어 날짜별로 추가합니다.</p>
+
+    <div class="ai-grid">
+      <div class="ai-in">
+        <label id="goal-label">목표를 골라 보세요</label>
+        <div class="goal-chips" role="group" aria-labelledby="goal-label" id="goalChips"></div>
+        <button class="btn btn-primary go" id="goBtn" type="button">AI로 쪼개기</button>
+        <div class="ai-steps">
+          <div><span>IN</span>목표 · 마감일 · 하루 가능 시간</div>
+          <div><span>AI</span>마감일 기준 역계산 → 단계 나누기</div>
+          <div><span>OUT</span>날짜별 할 일로 투두에 자동 등록</div>
+        </div>
+      </div>
+      <div class="ai-out" aria-live="polite">
+        <div class="out-head"><h3 id="outTitle"></h3><span class="note">화면 예시 · 실제 결과는 사용자 입력에 따라 생성</span></div>
+        <div class="phases" id="phases"></div>
+        <div class="plan" id="plan"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="features">
+  <div class="wrap center">
+    <div class="eyebrow">주요 기능</div>
+    <h2 class="sh">흩어진 일정 관리를 한 곳에.</h2>
+    <p class="sub">일정, 할 일, 루틴을 하나의 직관적인 화면으로 묶고, 각자의 생활 패턴에 맞춰 조정합니다.</p>
+    <div class="tabs" role="tablist" aria-label="기능 선택">
+      <button class="tab" role="tab" id="tab-all" aria-controls="p-all" aria-selected="true">올인원 통합 관리</button>
+      <button class="tab" role="tab" id="tab-cal" aria-controls="p-cal" aria-selected="false">맞춤 캘린더</button>
+      <button class="tab" role="tab" id="tab-coach" aria-controls="p-coach" aria-selected="false">미루기 코칭</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="panel" role="tabpanel" id="p-all" aria-labelledby="tab-all">
+      <div class="ptext">
+        <h3>일정, 할 일, 루틴을<br>하나의 타임라인으로</h3>
+        <p>여러 앱으로 흩어져 있던 일정·투두리스트·루틴 관리 기능을 단일 웹 서비스로 통합했습니다.</p>
+        <ul>
+          <li>약속과 수업 같은 일정, 그날의 할 일, 반복 루틴을 한 화면에서 확인</li>
+          <li>앱을 오가며 같은 내용을 다시 입력하는 번거로움 제거</li>
+          <li>루틴 달성 기록을 연속 일수로 한눈에 확인</li>
+        </ul>
+      </div>
+      <div class="pvis blue">
+        <div class="vcard">
+          <div class="merge"><s>캘린더 앱</s>+<s>투두 앱</s>+<s>습관 앱</s>→<b style="color:var(--fg)">싱크데이 하나로</b></div>
+          <h5>10월 14일 수요일 <small>오늘의 타임라인</small></h5>
+          <div class="tl">
+            <div class="tl-row"><time>07:30</time><span>아침 스트레칭 15분</span><span class="kind k-rt">루틴</span></div>
+            <div class="tl-row"><time>09:00</time><span>자료구조 수업 · D관 401호</span><span class="kind k-ev">일정</span></div>
+            <div class="tl-row"><time>10:30</time><span>RC 파트5 30문제</span><span class="kind k-td">할 일</span></div>
+            <div class="tl-row"><time>15:00</time><span>학술제 발표 리허설</span><span class="kind k-ev">일정</span></div>
+            <div class="tl-row"><time>21:00</time><span>영단어 40개 복습</span><span class="kind k-rt">루틴</span></div>
+            <div class="tl-row"><time>22:00</time><span>브로슈어 원고 최종 검토</span><span class="kind k-td">할 일</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-cal" aria-labelledby="tab-cal" hidden>
+      <div class="ptext">
+        <h3>내 생활 패턴에 맞춘<br>캘린더 설정</h3>
+        <p>특정 중요도의 일정만 모아 보는 필터와, 스케줄 근무자를 위한 자유로운 휴무일 설정을 지원합니다.</p>
+        <ul>
+          <li>중요도별 필터로 지금 집중해야 할 일정만 보기</li>
+          <li>요일이 고정되지 않은 휴무일도 날짜별로 지정</li>
+          <li>휴무일에는 AI가 할 일을 배치하지 않도록 반영</li>
+        </ul>
+      </div>
+      <div class="pvis yellow">
+        <div class="vcard">
+          <h5>10월 일정 <small>날짜를 눌러 휴무일 지정</small></h5>
+          <div class="filters" id="filters" role="group" aria-label="중요도 필터">
+            <button class="fchip" data-f="all" aria-pressed="true" type="button">전체</button>
+            <button class="fchip" data-f="hi" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-red)"></span>높음</button>
+            <button class="fchip" data-f="mid" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-yellow)"></span>보통</button>
+            <button class="fchip" data-f="lo" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-blue)"></span>낮음</button>
+          </div>
+          <div class="cal14" id="cal14"></div>
+          <p class="hint">빗금 친 날은 휴무일입니다. 다시 누르면 해제됩니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p-coach" aria-labelledby="tab-coach" hidden>
+      <div class="ptext">
+        <h3>자꾸 미루는 일은<br>더 작게 나눠 드려요</h3>
+        <p>특정 할 일을 계속 미루는 패턴이 보이면 이를 파악해 일정을 더 작은 단위로 다시 조정합니다. 중도 포기 없이 이어 가도록 돕는 코칭 기능입니다.</p>
+        <ul>
+          <li>미룬 횟수와 패턴을 기록해 부담이 큰 할 일을 찾아냄</li>
+          <li>큰 할 일을 짧은 단위로 쪼개 여러 날에 다시 배치</li>
+          <li>작은 성공을 쌓아 자기효능감을 높이는 흐름</li>
+        </ul>
+      </div>
+      <div class="pvis green">
+        <div class="vcard" id="coach">
+          <div class="coach-msg"><span aria-hidden="true">⏳</span><div><strong>'캡스톤 보고서 작성'을 3번 미뤘어요.</strong><br>AI가 바로 시작할 수 있는 작은 단계로 나눠 드릴까요?</div></div>
+          <div class="stack" id="coachStack">
+            <div class="task big"><span>캡스톤 보고서 작성</span><small>3시간 · 미룸 3회</small></div>
+          </div>
+          <button class="btn btn-primary" id="splitBtn" type="button">AI로 작게 나누기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="goals" style="padding-top:24px">
+  <div class="wrap">
+    <div class="eyebrow">작품 목표</div>
+    <h2 class="sh">싱크데이가 해결하려는 세 가지</h2>
+    <div class="goals">
+      <div class="goal">
+        <div class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4v-4h4v-4h4V8h4"/></svg></div>
+        <h3>목표 실천의 진입 장벽 완화</h3>
+        <p>추상적인 목표를 바로 실행할 수 있는 세부 행동 단위로 자동 변환하는 스케줄링 환경을 구축함</p>
+      </div>
+      <div class="goal">
+        <div class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <h3>분산된 자기 관리 기록의 단일 플랫폼 통합</h3>
+        <p>투두리스트, 루틴, 일정을 하나의 웹 서비스로 묶어 여러 앱을 오가는 복잡성과 피로도를 줄임</p>
+      </div>
+      <div class="goal">
+        <div class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></div>
+        <h3>데이터 기반의 지속적인 행동 교정</h3>
+        <p>할 일을 반복해 미루는 패턴을 파악해 더 작은 단위로 재조정하는 코칭 환경을 마련함</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="impact">
+  <div class="wrap">
+    <div class="eyebrow">기대효과 및 활용 방안</div>
+    <h2 class="sh">작은 실천이 쌓이면<br>달라지는 것들</h2>
+    <div class="impact">
+      <div class="icol a">
+        <h3>기대 효과</h3>
+        <ul>
+          <li>세분화된 목표를 달성하는 과정에서 사용자의 자기조절 능력과 자기효능감이 향상됨</li>
+          <li>어떻게 실천할지 고민하는 시간과 인지적 부담을 줄여 실행력을 높임</li>
+        </ul>
+      </div>
+      <div class="icol b">
+        <h3>활용 방안</h3>
+        <ul>
+          <li>누적된 사용자 행동 데이터를 바탕으로 개인 맞춤형 AI 비서로 발전</li>
+          <li>학업 지연 행동을 겪는 학생이나 취업준비생을 돕는 에듀테크·멘토링 서비스와 연계</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blk" id="team" style="padding-top:24px">
+  <div class="wrap center">
+    <div class="eyebrow">만든 사람들</div>
+    <h2 class="sh">Team Sync Day</h2>
+    <p class="sub">목원대학교 컴퓨터융합학부</p>
+    <div class="team">
+      <div class="member"><div class="avatar">채빈</div><div><b>김채빈</b><span>팀장</span></div></div>
+      <div class="member"><div class="avatar">유경</div><div><b>김유경</b><span>팀원</span></div></div>
+      <div class="member"><div class="avatar">재우</div><div><b>임재우</b><span>팀원</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>오늘 할 일,<br>이제 싱크데이가 정리합니다.</h2>
+    <p>AI를 활용한 개인 일정 올인원 웹 서비스</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span><b style="color:var(--fg)">Sync Day 싱크데이</b> · 웹 서비스 개발</span>
+    <span>제39회 컴퓨터융합학부 학술제 · 2026 AI융합페스티벌</span>
+  </div>
+</footer>
+
+<!-- 회원가입 버튼: 구글 계정으로 바로 가입·로그인 (Supabase Auth + Google OAuth) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="JS/supabase.js"></script>
+<script>
+(function(){
+  var btn = document.getElementById('signup-btn');
+  if (!btn) return;
+  var MAIN_PAGE = new URL('Pages/main.html', window.location.href).href;
+
+  // 이미 로그인한 사람에게는 '내 일정 보기'로 보여 주고 바로 홈으로 보냄
+  if (window.supabaseClient) {
+    window.supabaseClient.auth.getSession().then(function(r){
+      if (r && r.data && r.data.session) { btn.textContent = '내 일정 보기'; btn.href = 'Pages/main.html'; }
+    }).catch(function(){});
+  }
+
+  btn.addEventListener('click', async function(e){
+    // Supabase를 불러오지 못했으면 기본 링크(Login.html)로 이동
+    if (!window.supabaseClient) return;
+    e.preventDefault();
+    try {
+      var r = await window.supabaseClient.auth.getSession();
+      if (r.data && r.data.session) { window.location.href = MAIN_PAGE; return; }
+      var res = await window.supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: MAIN_PAGE, queryParams: { prompt: 'select_account' } }
+      });
+      if (res.error) throw res.error;
+    } catch (err) {
+      console.error('구글 로그인 시작 실패:', err);
+      window.location.href = 'Login.html';
+    }
+  });
+})();
+</script>
+<script>
+(function(){
+  // nav border on scroll
+  var nav=document.getElementById('nav');
+  addEventListener('scroll',function(){nav.classList.toggle('scrolled',scrollY>8)},{passive:true});
+
+  var days=['월','화','수','목','금','토','일'];
+
+  // AI demo
+  var goals=[
+    {name:'토익 800점 달성',due:'12/20 · D-67',
+     phases:[['기초 다지기','1~3주 · 단어·문법'],['유형 훈련','4~7주 · 파트별'],['실전 대비','8~10주 · 모의고사']],
+     plan:[['매일','영단어 40개 암기 + 전날 단어 복습','20분'],['월 · 수 · 금','RC 파트5 문법 30문제','40분'],['화 · 목','LC 파트2 25문항 + 받아쓰기','40분'],['토','실전 모의고사 1회 (120분)','2시간'],['일','틀린 문제 오답 노트 정리','40분']]},
+    {name:'정보처리기사 필기 합격',due:'11/30 · D-47',
+     phases:[['개념 정리','1~3주 · 5과목'],['기출 풀이','4~5주 · 최근 5개년'],['약점 보완','6~7주 · 오답 반복']],
+     plan:[['월 · 화','소프트웨어 설계 1챕터 + 요약 노트','1시간'],['수 · 목','데이터베이스 구축 1챕터','1시간'],['금','프로그래밍 언어 활용 문제 20개','50분'],['토','기출문제 1회분 시간 재고 풀기','1시간 30분'],['일','오답 정리 + 다음 주 범위 미리 보기','40분']]},
+    {name:'하프 마라톤 완주',due:'12/13 · D-60',
+     phases:[['기초 체력','1~3주 · 주 3회'],['거리 늘리기','4~6주 · 장거리'],['테이퍼링','7~8주 · 컨디션']],
+     plan:[['월','가볍게 조깅 4km + 스트레칭','35분'],['수','인터벌 400m × 5회','40분'],['금','하체 근력 운동 3세트','30분'],['토','장거리 달리기 8km (매주 +1.5km)','55분'],['매일','폼롤러 · 스트레칭 루틴','10분']]}
+  ];
+  var cur=0,chips=document.getElementById('goalChips');
+  goals.forEach(function(g,i){
+    var b=document.createElement('button');b.type='button';b.className='gchip';b.setAttribute('aria-pressed',i===0);
+    b.innerHTML='<b>'+g.name+'</b><small>'+g.due+'</small>';
+    b.addEventListener('click',function(){cur=i;[].forEach.call(chips.children,function(c,j){c.setAttribute('aria-pressed',j===i)});run(true)});
+    chips.appendChild(b);
+  });
+  var plan=document.getElementById('plan'),ph=document.getElementById('phases'),ot=document.getElementById('outTitle'),timer;
+  function render(anim){
+    var g=goals[cur];
+    ot.textContent=g.name;
+    ph.innerHTML=g.phases.map(function(p){return '<div class="ph" style="flex:1"><b>'+p[0]+'</b><span>'+p[1]+'</span></div>'}).join('');
+    plan.innerHTML=g.plan.map(function(r,i){return '<div class="plan-row'+(anim?' in':'')+'" style="animation-delay:'+(i*90)+'ms"><span class="when">'+r[0]+'</span><span>'+r[1]+'</span><span class="dur">'+r[2]+'</span></div>'}).join('');
+  }
+  function run(anim){
+    clearTimeout(timer);
+    if(!anim){render(false);return}
+    ot.textContent=goals[cur].name;
+    plan.innerHTML='<div class="thinking"><i></i><i></i><i></i>Gemini가 목표를 분석하고 있어요</div>';
+    timer=setTimeout(function(){render(true)},matchMedia('(prefers-reduced-motion: reduce)').matches?0:750);
+  }
+  document.getElementById('goBtn').addEventListener('click',function(){run(true)});
+  render(false);
+
+  // tabs
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on})}
+  tabs.forEach(function(t,i){
+    t.addEventListener('click',function(){sel(t)});
+    t.addEventListener('keydown',function(e){var d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(d){var n=tabs[(i+d+tabs.length)%tabs.length];sel(n);n.focus()}});
+  });
+  sel(tabs[0]);
+
+  // custom calendar: 2 weeks
+  var cal=document.getElementById('cal14'),c='';
+  days.forEach(function(d){c+='<div class="wd">'+d+'</div>'});
+  var pips=[['mid','lo'],['hi'],['mid','hi','lo'],['lo','mid'],['hi','lo'],[],['mid'],['lo','lo'],['hi','mid'],['mid'],['hi','lo','lo'],['lo'],[],['mid','hi']];
+  var off={5:1,12:1};
+  pips.forEach(function(p,i){
+    c+='<button type="button" class="cday'+(off[i]?' off':'')+'" data-i="'+i+'" aria-pressed="'+(!!off[i])+'" aria-label="10월 '+(12+i)+'일 휴무 전환"><span class="n">'+(12+i)+'</span>'+p.map(function(x){return '<span class="pip '+x+'" data-k="'+x+'"></span>'}).join('')+'</button>';
+  });
+  cal.innerHTML=c;
+  cal.addEventListener('click',function(e){var b=e.target.closest('.cday');if(!b)return;var on=b.classList.toggle('off');b.setAttribute('aria-pressed',on)});
+  var fl=document.getElementById('filters');
+  fl.addEventListener('click',function(e){
+    var b=e.target.closest('.fchip');if(!b)return;var f=b.dataset.f;
+    [].forEach.call(fl.children,function(x){x.setAttribute('aria-pressed',x===b)});
+    [].forEach.call(cal.querySelectorAll('.pip'),function(p){p.classList.toggle('hide',f!=='all'&&p.dataset.k!==f)});
+  });
+
+  // coaching split
+  var split=document.getElementById('splitBtn'),stack=document.getElementById('coachStack'),isSplit=false;
+  split.addEventListener('click',function(){
+    if(!isSplit){
+      stack.innerHTML=[['참고 자료 3개 찾아 두기','10/15 수','15분'],['보고서 목차 정리하기','10/16 목','40분'],['서론 초안 쓰기','10/17 금','60분']].map(function(r,i){return '<div class="task new" style="animation-delay:'+(i*110)+'ms"><span>'+r[0]+'</span><small>'+r[1]+' · '+r[2]+'</small></div>'}).join('');
+      split.textContent='처음으로 되돌리기';
+    }else{
+      stack.innerHTML='<div class="task big"><span>캡스톤 보고서 작성</span><small>3시간 · 미룸 3회</small></div>';
+      split.textContent='AI로 작게 나누기';
+    }
+    isSplit=!isSplit;
+  });
+})();
+</script>
+</body>
+</html>
