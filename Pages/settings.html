@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>SyncDay - 설정</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -37,7 +37,14 @@
         .inquiry-textarea:focus { border-color: #4361ee; }
         .inquiry-list { margin-top: 18px; }
         .inquiry-list-title { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 8px; }
-        .inquiry-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; background: #fff; }
+        .inquiry-list-title small { font-weight: 500; color: #94a3b8; margin-left: 6px; }
+        .inquiry-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+        .inquiry-item:hover, .inquiry-item:focus-visible { border-color: #4361ee; box-shadow: 0 2px 8px rgba(67,97,238,.08); outline: none; }
+        .inquiry-item .inquiry-q, .inquiry-item .inquiry-answer { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .detail-label { font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 6px; }
+        .detail-label.answer { color: #4361ee; }
+        .detail-text { font-size: 15px; color: #334155; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; background: #f8fafc; border-radius: 8px; padding: 12px 14px; max-height: 40vh; overflow-y: auto; }
+        .detail-wait { font-size: 14px; color: #94a3b8; background: #f8fafc; border-radius: 8px; padding: 12px 14px; }
         .inquiry-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
         .inquiry-status { font-size: 12px; font-weight: 700; color: #64748b; background: #f1f5f9; border-radius: 6px; padding: 2px 8px; }
         .inquiry-status.done { color: #047857; background: #ecfdf5; }
@@ -47,6 +54,9 @@
         .inquiry-answer b { color: #4361ee; margin-right: 4px; }
         .notice-item { cursor: pointer; transition: background 0.2s; }
         .notice-item:hover { background: #eef2ff; }
+        .notice-item .notice-date { float: right; font-size: 12px; color: #94a3b8; font-weight: 400; margin-left: 8px; }
+        .notice-item .notice-pin { color: #4361ee; margin-right: 4px; }
+        .notice-empty { font-size: 14px; color: #94a3b8; margin: 4px 0; }
     </style>
 </head>
 <body class="app-layout">
@@ -82,12 +92,7 @@
 
                 <div class="settings-section">
                     <h3 class="settings-title">공지사항</h3>
-                    <div class="notice-item" onclick="openNoticeModal('SyncDay V1.0 정식 업데이트 안내', '안녕하세요. SyncDay 팀입니다.\n\n오랜 준비 끝에 V1.0 정식 서비스를 오픈하게 되었습니다.\n- 구글 계정 로그인 지원\n- 캘린더, 루틴, 투두리스트 통합 대시보드\n- 달성률 시각화 기능\n\n앞으로도 많은 이용 부탁드립니다!', '2026-06-08')">
-                        <strong>[안내]</strong> SyncDay V1.0 업데이트 완료
-                    </div>
-                    <div class="notice-item" onclick="openNoticeModal('매일 투두 달성하고 피드백 받기 챌린지!', '이번 주부터 투두리스트 100% 달성 챌린지가 시작됩니다.\n\n매일 모든 투두와 루틴을 완료하신 분들께는 AI가 작성한 특별한 맞춤형 주간 피드백이 제공될 예정입니다. 지금 바로 참여해보세요!', '2026-06-07')">
-                        <strong>[이벤트]</strong> 매일 투두 달성하고 피드백 받기 챌린지!
-                    </div>
+                    <div id="notice-list"><p class="notice-empty">불러오는 중...</p></div>
                 </div>
 
                 <div class="settings-section">
@@ -106,6 +111,17 @@
             <div id="notice-modal-title" class="modal-title">공지사항 제목</div>
             <div id="notice-modal-date" class="modal-date">날짜</div>
             <div id="notice-modal-body" class="modal-body">내용</div>
+        </div>
+    </div>
+
+    <div id="inquiry-detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('inquiry-detail-modal')">&times;</button>
+            <div class="modal-title">1:1 문의</div>
+            <div id="inquiry-detail-meta" class="inquiry-head" style="margin-bottom: 14px;"></div>
+            <div class="detail-label">문의 내용</div>
+            <div id="inquiry-detail-q" class="detail-text"></div>
+            <div id="inquiry-detail-a" style="margin-top: 18px;"></div>
         </div>
     </div>
 
