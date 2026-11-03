@@ -288,3 +288,9 @@
 @media (max-width: 768px) {
     .todo-item { padding: 12px; gap: 10px; }
 }
+
+/* 홈: 오늘 달성률 개수 + 이번 주(일~토) 기록 */
+.progress-count { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; text-align: right; }
+.weekly-head small { font-weight: 500; color: #94a3b8; margin-left: 4px; }
+.weekly-day.future .weekly-bar { background: #f1f5f9; }
+.weekly-day.future .weekly-label { color: #cbd5e1; }
