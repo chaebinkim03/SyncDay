@@ -73,9 +73,9 @@ async function submitInquiry() {
     if (text.length > 2000) return alert("문의 내용은 2000자 이내로 적어주세요.");
     if (!currentUser) return alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
 
-    btn.disabled = true; btn.textContent = '접수 중...';
+    if (btn) { btn.disabled = true; btn.textContent = '접수 중...'; }
     const { error } = await window.supabaseClient.from('inquiries').insert({ content: text, email: currentUser.email });
-    btn.disabled = false; btn.textContent = '문의 접수하기';
+    if (btn) { btn.disabled = false; btn.textContent = '문의 접수하기'; }
 
     if (error) {
         console.error('문의 저장 실패:', error);
