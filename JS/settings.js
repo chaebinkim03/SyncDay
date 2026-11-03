@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayEl.innerText = (currentUser.user_metadata && currentUser.user_metadata.full_name) || currentUser.email; // 없으면 구글 이름 → 이메일
         }
         loadInquiries();
+        loadNotices();
     }
 });
 
@@ -47,6 +48,32 @@ function openNoticeModal(title, content, date) {
     document.getElementById('notice-modal-date').innerText = date;
     document.getElementById('notice-modal-body').innerText = content;
     document.getElementById('notice-modal').classList.add('active');
+}
+
+// 📢 공지사항: notices 테이블 (운영자가 Supabase Table Editor에서 작성)
+let notices = [];
+async function loadNotices() {
+    const box = document.getElementById('notice-list');
+    if (!box) return;
+    const { data, error } = await window.supabaseClient
+        .from('notices').select('id, category, title, content, is_pinned, created_at')
+        .order('is_pinned', { ascending: false }).order('created_at', { ascending: false }).limit(20);
+    if (error) {
+        console.error('공지사항 불러오기 실패:', error);
+        box.innerHTML = '<p class="notice-empty">공지사항을 불러오지 못했습니다.</p>';
+        return;
+    }
+    notices = data || [];
+    if (notices.length === 0) { box.innerHTML = '<p class="notice-empty">등록된 공지사항이 없습니다.</p>'; return; }
+    box.innerHTML = notices.map((n, i) => `
+        <div class="notice-item" role="button" tabindex="0" onclick="openNotice(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNotice(${i})}">
+            <span class="notice-date">${String(n.created_at).slice(0, 10)}</span>
+            ${n.is_pinned ? '<span class="notice-pin" title="고정 공지">📌</span>' : ''}<strong>[${escapeSettingsHtml(n.category || '안내')}]</strong> ${escapeSettingsHtml(n.title)}
+        </div>`).join('');
+}
+function openNotice(index) {
+    const n = notices[index];
+    if (n) openNoticeModal(n.title, n.content || '', String(n.created_at).slice(0, 10));
 }
 
 // 💬 1:1 문의창 활성화
@@ -86,6 +113,8 @@ async function submitInquiry() {
     loadInquiries();
 }
 
+let myInquiries = [];
+
 async function loadInquiries() {
     const box = document.getElementById('inquiry-list');
     if (!box || !currentUser) return;
@@ -93,14 +122,30 @@ async function loadInquiries() {
         .from('inquiries').select('content, answer, answered_at, created_at')
         .order('created_at', { ascending: false }).limit(10);
     if (error) { console.error('문의 내역 불러오기 실패:', error); box.innerHTML = ''; return; }
-    if (!data || data.length === 0) { box.innerHTML = ''; return; }
-    box.innerHTML = '<div class="inquiry-list-title">내 문의 내역</div>' + data.map(q => {
+    myInquiries = data || [];
+    if (myInquiries.length === 0) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="inquiry-list-title">내 문의 내역 <small>눌러서 자세히 보기</small></div>' + myInquiries.map((q, i) => {
         const date = String(q.created_at).slice(0, 10);
         const status = q.answer ? '<span class="inquiry-status done">답변 완료</span>' : '<span class="inquiry-status">답변 대기</span>';
         const answer = q.answer ? `<div class="inquiry-answer"><b>답변</b> ${escapeSettingsHtml(q.answer)}</div>` : '';
-        return `<div class="inquiry-item"><div class="inquiry-head">${status}<span class="inquiry-date">${date}</span></div>
+        return `<div class="inquiry-item" role="button" tabindex="0" onclick="openInquiryDetail(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openInquiryDetail(${i})}">
+            <div class="inquiry-head">${status}<span class="inquiry-date">${date}</span></div>
             <div class="inquiry-q">${escapeSettingsHtml(q.content)}</div>${answer}</div>`;
     }).join('');
+}
+
+// 문의 하나를 눌렀을 때: 질문과 답변 전체를 팝업으로
+function openInquiryDetail(index) {
+    const q = myInquiries[index];
+    if (!q) return;
+    const status = q.answer ? '<span class="inquiry-status done">답변 완료</span>' : '<span class="inquiry-status">답변 대기</span>';
+    const answered = q.answered_at ? ` · 답변 ${String(q.answered_at).slice(0, 10)}` : '';
+    document.getElementById('inquiry-detail-meta').innerHTML = `${status}<span class="inquiry-date">문의 ${String(q.created_at).slice(0, 10)}${answered}</span>`;
+    document.getElementById('inquiry-detail-q').textContent = q.content;
+    document.getElementById('inquiry-detail-a').innerHTML = q.answer
+        ? `<div class="detail-label answer">답변</div><div class="detail-text">${escapeSettingsHtml(q.answer)}</div>`
+        : '<div class="detail-wait">아직 답변이 없어요. 확인 후 이곳에 답변을 남겨 드릴게요.</div>';
+    document.getElementById('inquiry-detail-modal').classList.add('active');
 }
 
 // 인증 해제 및 리다이렉트
@@ -110,3 +155,10 @@ async function logout() {
     await window.supabaseClient.auth.signOut();
     window.location.href = "../index.html"; // 로그아웃 후 소개 페이지(첫 화면)로
 }
+// 팝업 바깥(어두운 부분)을 누르거나 Esc를 누르면 닫기
+document.addEventListener('click', (e) => {
+    if (e.target.classList && e.target.classList.contains('modal-overlay')) e.target.classList.remove('active');
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+});
