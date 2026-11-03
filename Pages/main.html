@@ -9,6 +9,7 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="app-layout">
     <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
@@ -30,11 +31,12 @@
                 <div class="dashboard-widget half-widget" style="margin-bottom: 0;">
                     <h3>달성도</h3>
                     <div class="progress-section" style="margin-top: 15px;">
-                        <div class="progress-label"><span>달성률</span><span id="main-progress-text">0%</span></div>
+                        <div class="progress-label"><span>오늘 달성률</span><span id="main-progress-text">0%</span></div>
                         <div class="progress-track"><div class="progress-bar" id="main-progress-bar"></div></div>
+                        <div id="main-progress-count" class="progress-count"></div>
                     </div>
                     <div class="weekly-record">
-                        <div class="weekly-head"><span>최근 7일 완료 기록</span><span id="weekly-total"></span></div>
+                        <div class="weekly-head"><span>이번 주 완료 기록 <small id="weekly-range"></small></span><span id="weekly-total"></span></div>
                         <div id="weekly-bars" class="weekly-bars"></div>
                     </div>
                 </div>
