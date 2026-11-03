@@ -117,7 +117,7 @@ function initMiniCalendar() {
     setTimeout(() => { miniCalendar.updateSize(); }, 100);
 }
 
-// 달성도 = (오늘 해야 하는 루틴 + 오늘까지의 투두) 중 완료한 비율 / 리스트에는 오늘 해야 하는 루틴만 표시
+// 오늘 달성률 = (오늘 해야 하는 루틴 + 오늘 날짜의 투두) 중 완료한 비율 / 리스트에는 오늘 해야 하는 루틴만 표시
 let homeRoutines = [];
 
 async function updateRoutineProgress() {
@@ -135,8 +135,8 @@ async function updateRoutineProgress() {
     const allRoutines = await normalizeRoutines(routinesData || []);
     // 반복 주기(매일/평일/주말)상 오늘 해야 하는 루틴만
     homeRoutines = allRoutines.filter(r => isRoutineDue(r.repeat_rule, todayStr));
-    // 오늘까지 해야 할 투두만 (AI가 만든 미래 날짜 투두는 제외)
-    const safeTodos = (todosData || []).filter(t => !t.target_date || t.target_date <= todayStr);
+    // 오늘 날짜의 투두만 (밀린 일·미래 일은 오늘 달성률에서 제외)
+    const safeTodos = (todosData || []).filter(t => t.target_date && String(t.target_date).slice(0, 10) === todayStr);
 
     const totalItems = homeRoutines.length + safeTodos.length;
     const totalCompleted = homeRoutines.filter(r => r.is_completed).length + safeTodos.filter(t => t.is_completed).length;
@@ -145,6 +145,8 @@ async function updateRoutineProgress() {
     const progressText = document.getElementById('main-progress-text');
     const progressBar = document.getElementById('main-progress-bar');
     if (progressText) progressText.innerText = percentage + '%';
+    const progressCount = document.getElementById('main-progress-count');
+    if (progressCount) progressCount.textContent = totalItems === 0 ? '오늘 할 일이 없어요' : `${totalCompleted} / ${totalItems}개 완료`;
     if (progressBar) {
         progressBar.style.width = percentage + '%';
         progressBar.style.transition = 'width 0.5s ease-in-out';
@@ -176,18 +178,19 @@ async function toggleRoutine(routineId) {
     if (await saveRoutineToggle(routine)) { updateRoutineProgress(); loadWeeklyRecord(); }
 }
 
-// 최근 7일 완료 기록 (completion_logs: DB가 루틴·투두 체크를 보고 자동으로 남기는 기록)
+// 이번 주(일요일~토요일) 완료 기록 (completion_logs: DB가 루틴·투두 체크를 보고 자동으로 남기는 기록)
 async function loadWeeklyRecord() {
     const box = document.getElementById('weekly-bars');
     if (!box) return;
-    const today = localDateString();
+    const now = new Date();
+    const today = localDateString(now);
     const days = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(); d.setDate(d.getDate() - i);
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + i); // 이번 주 일요일부터
         days.push(localDateString(d));
     }
     const { data, error } = await window.supabaseClient
-        .from('completion_logs').select('done_date').gte('done_date', days[0]).lte('done_date', today);
+        .from('completion_logs').select('done_date').gte('done_date', days[0]).lte('done_date', days[6]);
     if (error) { console.error('완료 기록 불러오기 실패:', error); return; }
 
     const counts = Object.fromEntries(days.map(d => [d, 0]));
@@ -196,15 +199,19 @@ async function loadWeeklyRecord() {
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
     const week = ['일', '월', '화', '수', '목', '금', '토'];
 
-    box.innerHTML = days.map(d => {
-        const [y, m, dd] = d.split('-').map(Number);
-        const label = d === today ? '오늘' : week[new Date(y, m - 1, dd).getDay()];
+    box.innerHTML = days.map((d, i) => {
+        const [, m, dd] = d.split('-').map(Number);
+        const future = d > today;
         const h = Math.round((counts[d] / max) * 44);
-        return `<div class="weekly-day${d === today ? ' today' : ''}" title="${m}/${dd} 완료 ${counts[d]}개">
-            <span class="weekly-count">${counts[d] || ''}</span>
-            <div class="weekly-bar" style="height:${Math.max(h, 4)}px"></div>
-            <span class="weekly-label">${label}</span></div>`;
+        const cls = 'weekly-day' + (d === today ? ' today' : '') + (future ? ' future' : '');
+        return `<div class="${cls}" title="${m}/${dd} 완료 ${counts[d]}개">
+            <span class="weekly-count">${future ? '' : (counts[d] || '')}</span>
+            <div class="weekly-bar" style="height:${future ? 4 : Math.max(h, 4)}px"></div>
+            <span class="weekly-label">${week[i]}</span></div>`;
     }).join('');
+    const fmt = (d) => { const [, m, dd] = d.split('-').map(Number); return `${m}/${dd}`; };
+    const rangeEl = document.getElementById('weekly-range');
+    if (rangeEl) rangeEl.textContent = `${fmt(days[0])} ~ ${fmt(days[6])}`;
     const totalEl = document.getElementById('weekly-total');
     if (totalEl) totalEl.textContent = `총 ${total}개`;
 }
