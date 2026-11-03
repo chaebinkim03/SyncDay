@@ -35,6 +35,16 @@
             box-sizing: border-box;
         }
         .inquiry-textarea:focus { border-color: #4361ee; }
+        .inquiry-list { margin-top: 18px; }
+        .inquiry-list-title { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 8px; }
+        .inquiry-item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; background: #fff; }
+        .inquiry-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .inquiry-status { font-size: 12px; font-weight: 700; color: #64748b; background: #f1f5f9; border-radius: 6px; padding: 2px 8px; }
+        .inquiry-status.done { color: #047857; background: #ecfdf5; }
+        .inquiry-date { font-size: 12px; color: #94a3b8; }
+        .inquiry-q { font-size: 14px; color: #334155; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .inquiry-answer { margin-top: 8px; padding: 10px 12px; background: #f8fafc; border-radius: 8px; font-size: 14px; color: #334155; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .inquiry-answer b { color: #4361ee; margin-right: 4px; }
         .notice-item { cursor: pointer; transition: background 0.2s; }
         .notice-item:hover { background: #eef2ff; }
     </style>
@@ -84,6 +94,7 @@
                     <h3 class="settings-title">💬 고객 센터 및 문의하기</h3>
                     <p style="font-size: 14px; color: #64748b; margin-bottom: 12px;">서비스 이용 중 불편한 점이나 추가되었으면 하는 기능이 있으시면 언제든 알려주세요.</p>
                     <button onclick="openInquiryModal()" class="btn-primary">1:1 문의글 작성하기</button>
+                    <div id="inquiry-list" class="inquiry-list"></div>
                 </div>
             </div>
         </main>
@@ -103,7 +114,7 @@
             <button class="modal-close" onclick="closeModal('inquiry-modal')">&times;</button>
             <div class="modal-title">1:1 문의글 작성</div>
             <textarea id="inquiry-text" class="inquiry-textarea" placeholder="문의하실 내용을 상세히 적어주세요."></textarea>
-            <button onclick="submitInquiry()" class="btn-primary" style="width: 100%;">문의 접수하기</button>
+            <button id="inquiry-submit" onclick="submitInquiry()" class="btn-primary" style="width: 100%;">문의 접수하기</button>
         </div>
     </div>
 
