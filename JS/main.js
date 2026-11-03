@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await checkSession();
     if(!currentUserId) return;
 
-    // 🛡️ [에러 방어벽]: 하나의 위젯에 문제가 생겨도 다른 위젯은 정상 작동하도록 보호
+    // [에러 방어벽]: 하나의 위젯에 문제가 생겨도 다른 위젯은 정상 작동하도록 보호
     try { initMiniCalendar(); } catch(e) { console.error("캘린더 로딩 에러:", e); }
     try { updateRoutineProgress(); } catch(e) { console.error("달성도 및 루틴 로딩 에러:", e); }
     try { loadWeeklyRecord(); } catch(e) { console.error("완료 기록 로딩 에러:", e); }
