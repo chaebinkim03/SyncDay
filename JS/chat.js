@@ -150,6 +150,26 @@ if (savedDir) windowEl.className = savedDir;
 if (isChatOpen) windowEl.style.display = 'flex';
 if (savedMessages) chatMessages.innerHTML = savedMessages;
 
+// 저장된 위치가 지금 화면 밖이면(넓은 화면 → 휴대폰, 화면 회전 등) 기본 위치(오른쪽 아래)로 되돌림
+function resetChatPosition() {
+    container.style.left = ''; container.style.top = '';
+    container.style.right = ''; container.style.bottom = '';
+    windowEl.classList.remove('dir-down-left', 'dir-up-right', 'dir-down-right');
+    windowEl.classList.add('dir-up-left');
+}
+function keepChatInView() {
+    if (!container.style.left && !container.style.top) return; // 기본 위치면 그대로
+    const rect = container.getBoundingClientRect();
+    const out = rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0;
+    if (out) {
+        resetChatPosition();
+        try { sessionStorage.removeItem('chatLeft'); sessionStorage.removeItem('chatTop'); sessionStorage.setItem('chatDir', windowEl.className); } catch (e) {}
+    }
+}
+keepChatInView();
+let chatResizeTimer;
+window.addEventListener('resize', () => { clearTimeout(chatResizeTimer); chatResizeTimer = setTimeout(keepChatInView, 150); });
+
 container.style.visibility = 'visible';
 chatMessages.scrollTop = chatMessages.scrollHeight;
 
