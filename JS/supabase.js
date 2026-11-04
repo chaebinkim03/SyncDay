@@ -51,6 +51,6 @@ async function saveRestSetting(setting) {
     await ensureRestSetting();
     const value = { type: setting.type === 'weekly' ? 'weekly' : 'default', days: setting.type === 'weekly' ? setting.days : [] };
     localStorage.setItem(restCacheKey(), JSON.stringify(value));
-    if (!restUserId) return { error: new Error('로그인이 필요합니다.') };
+    if (!restUserId) return { error: new Error('로그인이 필요해요.') };
     return window.supabaseClient.from('profiles').upsert({ id: restUserId, rest_setting: value });
 }

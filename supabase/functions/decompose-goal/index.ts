@@ -63,7 +63,7 @@ async function handlePlan(supabase: SupabaseClient, userId: string, body: unknow
   const input = parsed.value;
 
   const dates = listAvailableDates(input.today, input.deadline, input.restDays);
-  if (dates.length === 0) return json({ error: "마감일까지 휴무일을 빼면 남는 날이 없습니다." }, 400);
+  if (dates.length === 0) return json({ error: "마감일까지 휴무일을 빼면 남는 날이 없어요." }, 400);
 
   let plan = null;
   for (let attempt = 0; attempt < 2 && (!plan || plan.tasks.length === 0); attempt++) {
@@ -71,11 +71,11 @@ async function handlePlan(supabase: SupabaseClient, userId: string, body: unknow
       plan = sanitizePlan(await askGemini(buildPrompt(input, dates), RESPONSE_SCHEMA), dates, input.minutesPerDay);
     } catch (e) {
       console.error("decompose-goal plan gemini", attempt, e);
-      if (attempt === 1) return json({ error: "AI가 계획을 만들지 못했습니다. 잠시 후 다시 시도해주세요." }, 502);
+      if (attempt === 1) return json({ error: "AI가 계획을 만들지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
     }
   }
   if (!plan || plan.tasks.length === 0) {
-    return json({ error: "AI가 계획을 만들지 못했습니다. 목표를 조금 더 구체적으로 적어주세요." }, 502);
+    return json({ error: "AI가 계획을 만들지 못했어요. 목표를 조금 더 구체적으로 적어 주세요." }, 502);
   }
 
   // 목표 저장 → 투두 저장 (중간에 실패하면 목표를 지워 반쯤 저장된 데이터가 남지 않게)
@@ -85,14 +85,14 @@ async function handlePlan(supabase: SupabaseClient, userId: string, body: unknow
     .select("goal_id").single();
   if (goalError || !goal) {
     console.error("insert goal", goalError);
-    return json({ error: "목표를 저장하지 못했습니다." }, 500);
+    return json({ error: "목표를 저장하지 못했어요." }, 500);
   }
   try {
     await saveTasks(supabase, plan.tasks, userId, goal.goal_id);
   } catch (e) {
     console.error("save plan", e);
     await supabase.from("goals").delete().eq("goal_id", goal.goal_id);
-    return json({ error: "계획을 저장하지 못했습니다. 잠시 후 다시 시도해주세요." }, 500);
+    return json({ error: "계획을 저장하지 못했어요. 잠시 후 다시 시도해 주세요." }, 500);
   }
 
   return json({
@@ -115,8 +115,8 @@ async function handleSplit(supabase: SupabaseClient, userId: string, body: unkno
   const { data: task } = await supabase
     .from("ai_subtasks").select("task_id, task_content, is_completed, goal_id, postpone_count")
     .eq("task_id", input.taskId).maybeSingle();
-  if (!task) return json({ error: "나눌 할 일을 찾을 수 없습니다." }, 404);
-  if (task.is_completed) return json({ error: "이미 완료한 할 일입니다." }, 400);
+  if (!task) return json({ error: "나눌 할 일을 찾을 수 없어요." }, 404);
+  if (task.is_completed) return json({ error: "이미 완료한 할 일이에요." }, 400);
 
   let goalTitle: string | null = null;
   let minutes: number | null = null;
@@ -138,7 +138,7 @@ async function handleSplit(supabase: SupabaseClient, userId: string, body: unkno
       console.error("decompose-goal split gemini", attempt, e);
     }
   }
-  if (steps.length === 0) return json({ error: "AI가 할 일을 나누지 못했습니다. 잠시 후 다시 시도해주세요." }, 502);
+  if (steps.length === 0) return json({ error: "AI가 할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
 
   const dates = nextAvailableDates(input.today, input.restDays, steps.length);
   const tasks: DatedTask[] = steps.map((s, i) => ({ date: dates[i], title: s.title, minutes: s.minutes }));
@@ -147,7 +147,7 @@ async function handleSplit(supabase: SupabaseClient, userId: string, body: unkno
     await saveTasks(supabase, tasks, userId, task.goal_id ?? null);
   } catch (e) {
     console.error("save split", e);
-    return json({ error: "나눈 할 일을 저장하지 못했습니다." }, 500);
+    return json({ error: "나눈 할 일을 저장하지 못했어요." }, 500);
   }
   // 나눈 할 일을 저장했으니 원래 할 일은 삭제
   const { error: delError } = await supabase.from("ai_subtasks").delete().eq("task_id", task.task_id);
@@ -158,21 +158,21 @@ async function handleSplit(supabase: SupabaseClient, userId: string, body: unkno
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "POST 요청만 받습니다." }, 405);
+  if (req.method !== "POST") return json({ error: "POST 요청만 받아요." }, 405);
 
   // 로그인 확인
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) return json({ error: "로그인이 필요합니다." }, 401);
+  if (!authHeader.startsWith("Bearer ")) return json({ error: "로그인이 필요해요." }, 401);
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.slice(7));
-  if (userError || !user) return json({ error: "로그인이 만료되었습니다. 다시 로그인해주세요." }, 401);
+  if (userError || !user) return json({ error: "로그인이 만료됐어요. 다시 로그인해 주세요." }, 401);
 
   let body: any;
-  try { body = await req.json(); } catch { return json({ error: "요청 형식이 올바르지 않습니다." }, 400); }
+  try { body = await req.json(); } catch { return json({ error: "요청 형식이 올바르지 않아요." }, 400); }
 
   return body?.mode === "split" ? handleSplit(supabase, user.id, body) : handlePlan(supabase, user.id, body);
 });

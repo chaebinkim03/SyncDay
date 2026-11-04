@@ -51,24 +51,24 @@ export type PlanRequest = {
 
 export function parseRequest(body: any): { ok: true; value: PlanRequest } | { ok: false; error: string } {
   const goal = typeof body?.goal === "string" ? body.goal.trim() : "";
-  if (goal.length < 2) return { ok: false, error: "목표를 2글자 이상 입력해주세요." };
-  if (goal.length > 200) return { ok: false, error: "목표는 200자 이내로 입력해주세요." };
+  if (goal.length < 2) return { ok: false, error: "목표를 2글자 이상 입력해 주세요." };
+  if (goal.length > 200) return { ok: false, error: "목표는 200자 이내로 입력해 주세요." };
 
   const today = body?.today;
-  if (!isDate(today)) return { ok: false, error: "오늘 날짜 형식이 올바르지 않습니다." };
+  if (!isDate(today)) return { ok: false, error: "오늘 날짜 형식이 올바르지 않아요." };
   const deadline = body?.deadline;
-  if (!isDate(deadline)) return { ok: false, error: "마감일을 선택해주세요." };
-  if (deadline < today) return { ok: false, error: "마감일은 오늘 이후 날짜로 선택해주세요." };
+  if (!isDate(deadline)) return { ok: false, error: "마감일을 선택해 주세요." };
+  if (deadline < today) return { ok: false, error: "마감일은 오늘 이후 날짜로 선택해 주세요." };
 
   const minutes = Number(body?.minutesPerDay ?? 60);
   if (!Number.isFinite(minutes) || minutes < 10 || minutes > 480) {
-    return { ok: false, error: "하루 투자 시간은 10분~8시간 사이로 선택해주세요." };
+    return { ok: false, error: "하루 투자 시간은 10분~8시간 사이로 선택해 주세요." };
   }
 
   const restDays = Array.isArray(body?.restDays)
     ? [...new Set(body.restDays.map(Number).filter((n: number) => Number.isInteger(n) && n >= 0 && n <= 6))] as number[]
     : [];
-  if (restDays.length >= 7) return { ok: false, error: "모든 요일이 휴무일이라 계획을 세울 수 없습니다." };
+  if (restDays.length >= 7) return { ok: false, error: "모든 요일이 휴무일이라 계획을 세울 수 없어요." };
 
   return { ok: true, value: { goal, deadline, today, minutesPerDay: Math.round(minutes), restDays } };
 }
@@ -160,12 +160,12 @@ export type SplitRequest = { taskId: number; today: string; restDays: number[] }
 
 export function parseSplitRequest(body: any): { ok: true; value: SplitRequest } | { ok: false; error: string } {
   const taskId = Number(body?.taskId);
-  if (!Number.isInteger(taskId) || taskId <= 0) return { ok: false, error: "나눌 할 일을 찾을 수 없습니다." };
-  if (!isDate(body?.today)) return { ok: false, error: "오늘 날짜 형식이 올바르지 않습니다." };
+  if (!Number.isInteger(taskId) || taskId <= 0) return { ok: false, error: "나눌 할 일을 찾을 수 없어요." };
+  if (!isDate(body?.today)) return { ok: false, error: "오늘 날짜 형식이 올바르지 않아요." };
   const restDays = Array.isArray(body?.restDays)
     ? [...new Set(body.restDays.map(Number).filter((n: number) => Number.isInteger(n) && n >= 0 && n <= 6))] as number[]
     : [];
-  if (restDays.length >= 7) return { ok: false, error: "모든 요일이 휴무일이라 일정을 잡을 수 없습니다." };
+  if (restDays.length >= 7) return { ok: false, error: "모든 요일이 휴무일이라 일정을 잡을 수 없어요." };
   return { ok: true, value: { taskId, today: body.today, restDays } };
 }
 

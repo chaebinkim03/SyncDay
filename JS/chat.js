@@ -85,6 +85,7 @@ const chatWidgetCode = `
         #chat-window { width: calc(100vw - 32px); height: min(520px, calc(100dvh - 220px)); }
         #chat-window.dir-up-left, #chat-window.dir-up-right { bottom: 72px; }
         #chat-window.dir-down-left, #chat-window.dir-down-right { top: 72px; }
+        #chat-window[class]::before, #chat-window[class]::after { display: none !important; }
     }
 
     @keyframes chatFadeIn {
@@ -100,7 +101,7 @@ const chatWidgetCode = `
             <button class="close-btn" id="close-chat">&times;</button>
         </div>
         <div class="chat-body" id="chat-messages">
-            <div class="msg ai-msg">안녕하세요! 목표와 마감일을 알려주시면 마감일까지 매일 할 일로 나눠서 투두에 넣어드릴게요.</div>
+            <div class="msg ai-msg">안녕하세요! 목표와 마감일을 알려 주시면 마감일까지 매일 할 일로 나눠서 투두에 넣어 드릴게요.</div>
         </div>
         <div class="chat-footer">
             <input type="text" id="chat-input" placeholder="목표 입력 (예: 토익 800점 달성)" maxlength="200">
@@ -150,6 +151,39 @@ if (savedDir) windowEl.className = savedDir;
 if (isChatOpen) windowEl.style.display = 'flex';
 if (savedMessages) chatMessages.innerHTML = savedMessages;
 
+// 휴대폰: 아래 메뉴바(탭바) 윗선. 챗봇이 이 아래로 내려가지 않게 함
+function chatBottomLimit() {
+    const bar = document.getElementById('sidebar-left');
+    if (bar && window.innerWidth <= 768 && getComputedStyle(bar).position === 'fixed') {
+        return bar.getBoundingClientRect().top - 10;
+    }
+    return window.innerHeight - 15;
+}
+const isMobileChat = () => window.innerWidth <= 768;
+
+// 메시지 창 위치: 휴대폰에서는 화면 폭에 맞추고, 챗봇 버튼 위/아래 중 넓은 쪽에 붙임 (버튼을 옮기면 창도 따라감)
+function placeChatWindow() {
+    const w = windowEl.style;
+    if (!isMobileChat()) {
+        w.position = ''; w.left = ''; w.right = ''; w.top = ''; w.bottom = ''; w.width = ''; w.height = '';
+        return;
+    }
+    if (windowEl.style.display !== 'flex') return;
+    const r = icon.getBoundingClientRect();
+    const limit = chatBottomLimit();
+    const gap = 10, topSafe = 12;
+    const spaceAbove = r.top - gap - topSafe;
+    const spaceBelow = limit - r.bottom - gap;
+    w.position = 'fixed'; w.left = '16px'; w.right = '16px'; w.width = 'auto';
+    if (spaceAbove >= spaceBelow) {
+        w.top = 'auto'; w.bottom = (window.innerHeight - r.top + gap) + 'px';
+        w.height = Math.max(240, Math.min(520, spaceAbove)) + 'px';
+    } else {
+        w.bottom = 'auto'; w.top = (r.bottom + gap) + 'px';
+        w.height = Math.max(240, Math.min(520, spaceBelow)) + 'px';
+    }
+}
+
 // 저장된 위치가 지금 화면 밖이면(넓은 화면 → 휴대폰, 화면 회전 등) 기본 위치(오른쪽 아래)로 되돌림
 function resetChatPosition() {
     container.style.left = ''; container.style.top = '';
@@ -158,13 +192,15 @@ function resetChatPosition() {
     windowEl.classList.add('dir-up-left');
 }
 function keepChatInView() {
-    if (!container.style.left && !container.style.top) return; // 기본 위치면 그대로
-    const rect = container.getBoundingClientRect();
-    const out = rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0;
-    if (out) {
-        resetChatPosition();
-        try { sessionStorage.removeItem('chatLeft'); sessionStorage.removeItem('chatTop'); sessionStorage.setItem('chatDir', windowEl.className); } catch (e) {}
+    if (container.style.left || container.style.top) {
+        const rect = container.getBoundingClientRect();
+        const out = rect.right > window.innerWidth || rect.bottom > chatBottomLimit() + 10 || rect.left < 0 || rect.top < 0;
+        if (out) {
+            resetChatPosition();
+            try { sessionStorage.removeItem('chatLeft'); sessionStorage.removeItem('chatTop'); sessionStorage.setItem('chatDir', windowEl.className); } catch (e) {}
+        }
     }
+    placeChatWindow();
 }
 keepChatInView();
 let chatResizeTimer;
@@ -232,13 +268,14 @@ function onDragMove(e) {
 
     const padding = 15;
     const maxLeft = window.innerWidth - container.offsetWidth - padding;
-    const maxTop = window.innerHeight - container.offsetHeight - padding;
+    const maxTop = chatBottomLimit() - container.offsetHeight; // 휴대폰: 아래 메뉴바 위까지만
 
     newLeft = Math.max(padding, Math.min(newLeft, maxLeft));
     newTop = Math.max(padding, Math.min(newTop, maxTop));
 
     container.style.left = newLeft + 'px';
     container.style.top = newTop + 'px';
+    placeChatWindow(); // 창이 열려 있으면 버튼을 따라 움직임
 }
 
 // 8. 드래그 종료
@@ -263,7 +300,7 @@ function onDragEnd() {
             container.style.left = (windowWidth - container.offsetWidth - edgePadding) + 'px';
         }
 
-        const maxTop = windowHeight - container.offsetHeight - edgePadding;
+        const maxTop = Math.min(windowHeight - edgePadding, chatBottomLimit()) - container.offsetHeight;
         let finalTop = Math.max(edgePadding, Math.min(rect.top, maxTop));
         container.style.top = finalTop + 'px';
 
@@ -275,6 +312,7 @@ function onDragEnd() {
         else if (closeToLeft && closeToTop) { windowEl.classList.add('dir-down-right'); }
         
         saveState();
+        setTimeout(placeChatWindow, 320); // 가장자리로 붙는 애니메이션이 끝난 뒤 창 위치 맞춤
     }
 }
 
@@ -292,6 +330,7 @@ window.addEventListener('touchend', onDragEnd);
 icon.addEventListener('click', () => {
     if (hasMoved) return; 
     windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex'; // 첫 클릭에 바로 열리도록
+    placeChatWindow();
     saveState();
 });
 
@@ -363,7 +402,7 @@ async function sendMessage() {
     const deadline = deadlineInput.value;
     const minutesPerDay = Number(minutesSelect.value);
     if (!goal || isPlanning) return;
-    if (!deadline) { addAiMessage('마감일을 선택해주세요.', true); return; }
+    if (!deadline) { addAiMessage('마감일을 선택해 주세요.', true); return; }
 
     isPlanning = true;
     sendBtn.disabled = true;
@@ -381,7 +420,7 @@ async function sendMessage() {
             body: { goal, deadline, today: localDateStr(), minutesPerDay, restDays }
         });
         if (error) {
-            let message = '계획을 만들지 못했습니다. 잠시 후 다시 시도해주세요.';
+            let message = '계획을 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
             try { const body = await error.context.json(); if (body && body.error) message = body.error; } catch (e) {}
             throw new Error(message);
         }
@@ -406,7 +445,7 @@ async function sendMessage() {
     } catch (err) {
         console.error('decompose-goal 오류:', err);
         document.getElementById(loadingId)?.remove();
-        addAiMessage(escapeHtml(err.message || '오류가 생겼습니다. 잠시 후 다시 시도해주세요.'), true);
+        addAiMessage(escapeHtml(err.message || '오류가 생겼어요. 잠시 후 다시 시도해 주세요.'), true);
     } finally {
         isPlanning = false;
         sendBtn.disabled = false;

@@ -77,8 +77,8 @@ async function saveRoutineToggle(r) {
     const { error } = await window.supabaseClient.from('routines').update(values).eq('routine_id', r.routine_id);
     if (error) {
         console.error('루틴 상태 저장 실패:', error);
-        if (window.Swal) Swal.fire({ title: '저장 실패', text: '루틴 상태를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.', icon: 'error', heightAuto: false });
-        else alert('루틴 상태를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.');
+        if (window.Swal) Swal.fire({ title: '저장 실패', text: '루틴 상태를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
+        else alert('루틴 상태를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
         return false;
     }
     Object.assign(r, values);

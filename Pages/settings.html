@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>SyncDay - 설정</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -58,6 +58,10 @@
         .notice-item .notice-pin { color: #4361ee; margin-right: 4px; }
         .notice-empty { font-size: 14px; color: #94a3b8; margin: 4px 0; }
     </style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#4361ee">
 </head>
 <body class="app-layout">
     <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
@@ -84,10 +88,10 @@
                     <p id="user-info-text" style="margin-bottom: 12px; color: #64748b; font-size: 14px;">로그인된 계정: 불러오는 중...</p>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="nickname-input" class="settings-input" placeholder="원하시는 닉네임을 입력하세요">
+                        <input type="text" id="nickname-input" class="settings-input" placeholder="원하는 닉네임을 입력해 주세요">
                         <button onclick="saveNickname()" class="btn-primary">저장하기</button>
                     </div>
-                    <p id="nickname-status" style="color: #10b981; font-size: 13px; margin-top: 8px; display: none;">닉네임이 성공적으로 반영되었습니다!</p>
+                    <p id="nickname-status" style="color: #10b981; font-size: 13px; margin-top: 8px; display: none;">닉네임을 바꿨어요!</p>
                 </div>
 
                 <div class="settings-section">
@@ -97,7 +101,7 @@
 
                 <div class="settings-section">
                     <h3 class="settings-title">고객 센터 및 문의하기</h3>
-                    <p style="font-size: 14px; color: #64748b; margin-bottom: 12px;">서비스 이용 중 불편한 점이나 추가되었으면 하는 기능이 있으시면 언제든 알려주세요.</p>
+                    <p style="font-size: 14px; color: #64748b; margin-bottom: 12px;">서비스 이용 중 불편한 점이나 추가되었으면 하는 기능이 있으시면 언제든 알려 주세요.</p>
                     <button onclick="openInquiryModal()" class="btn-primary">1:1 문의글 작성하기</button>
                     <div id="inquiry-list" class="inquiry-list"></div>
                 </div>
@@ -129,7 +133,7 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('inquiry-modal')">&times;</button>
             <div class="modal-title">1:1 문의글 작성</div>
-            <textarea id="inquiry-text" class="inquiry-textarea" placeholder="문의하실 내용을 상세히 적어주세요."></textarea>
+            <textarea id="inquiry-text" class="inquiry-textarea" placeholder="문의할 내용을 자세히 적어 주세요."></textarea>
             <button id="inquiry-submit" onclick="submitInquiry()" class="btn-primary" style="width: 100%;">문의 접수하기</button>
         </div>
     </div>

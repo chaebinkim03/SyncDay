@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/google-calendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#4361ee">
 </head>
 <body class="app-layout">
     <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
@@ -35,8 +39,8 @@
                         <div class="progress-track"><div class="progress-bar" id="main-progress-bar"></div></div>
                         <div id="main-progress-count" class="progress-count"></div>
                     </div>
-                    <div class="weekly-record">
-                        <div class="weekly-head"><span>이번 주 완료 기록 <small id="weekly-range"></small></span><span id="weekly-total"></span></div>
+                    <div class="weekly-record" id="weekly-record" role="button" tabindex="0" title="눌러서 요일별 달성 보기">
+                        <div class="weekly-head"><span>이번 주 완료 기록 <small id="weekly-range"></small></span><span><span id="weekly-total"></span> <span class="weekly-more">자세히 ›</span></span></div>
                         <div id="weekly-bars" class="weekly-bars"></div>
                     </div>
                 </div>
@@ -53,7 +57,7 @@
                 </div>
                 <div class="dashboard-widget half-widget">
                     <h3>To-do</h3>
-                    <ul id="urgent-todo-list" class="item-list"><li class="empty-msg">입력한 To-do가 없습니다.</li></ul>
+                    <ul id="urgent-todo-list" class="item-list"><li class="empty-msg">불러오는 중...</li></ul>
                 </div>
             </div>
         </main>

@@ -29,7 +29,7 @@ document.getElementById('google-login-btn').addEventListener('click', async () =
 
     if (error) {
         console.error(error);
-        errorEl.textContent = '구글 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해주세요.';
+        errorEl.textContent = '구글 로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.';
         errorEl.hidden = false;
     }
 });

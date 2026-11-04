@@ -246,9 +246,20 @@ html:not(.motion) .fl{opacity:.95}
 .motion .mini-app:nth-child(2){animation-delay:.5s}.motion .mini-app:nth-child(3){animation-delay:1s}.motion .mini-app:nth-child(4){animation-delay:1.5s}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
 .motion .qbubble.faint{animation:bob 5s ease-in-out .8s infinite}
+
+/* 올인원 통합 관리: 실제 홈 화면 사진 */
+.pvis.shot{padding:28px;align-items:center}
+.home-shot{margin:0;width:100%;display:flex;flex-direction:column;gap:10px}
+.home-shot img{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 1px 2px rgba(20,20,20,.06),0 18px 40px -16px rgba(20,20,20,.28);border:1px solid var(--line);background:#fff}
+.home-shot figcaption{font-size:12.5px;color:var(--fg-2);text-align:center}
+@media (max-width:860px){.pvis.shot{padding:16px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 <script>try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('motion')}catch(e){}</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#4361ee">
 </head>
 <body>
 
@@ -353,27 +364,22 @@ html:not(.motion) .fl{opacity:.95}
   <div class="wrap">
     <div class="panel" role="tabpanel" id="p-all" aria-labelledby="tab-all">
       <div class="ptext">
-        <h3>일정, 할 일, 루틴을<br>하나의 타임라인으로</h3>
+        <h3>일정, 할 일, 루틴을<br>하나의 홈 화면에서</h3>
         <p>여러 앱으로 흩어져 있던 일정·투두리스트·루틴 관리 기능을 단일 웹 서비스로 통합했습니다.</p>
         <ul>
           <li>약속과 수업 같은 일정, 그날의 할 일, 반복 루틴을 한 화면에서 확인</li>
           <li>앱을 오가며 같은 내용을 다시 입력하는 번거로움 제거</li>
-          <li>루틴 달성 기록을 연속 일수로 한눈에 확인</li>
+          <li>오늘 달성률과 이번 주 완료 기록을 한눈에 확인</li>
         </ul>
       </div>
-      <div class="pvis blue">
-        <div class="vcard">
-          <div class="merge"><s>캘린더 앱</s>+<s>투두 앱</s>+<s>습관 앱</s>→<b style="color:var(--fg)">싱크데이 하나로</b></div>
-          <h5>10월 14일 수요일 <small>오늘의 타임라인</small></h5>
-          <div class="tl">
-            <div class="tl-row"><time>07:30</time><span>아침 스트레칭 15분</span><span class="kind k-rt">루틴</span></div>
-            <div class="tl-row"><time>09:00</time><span>자료구조 수업 · D관 401호</span><span class="kind k-ev">일정</span></div>
-            <div class="tl-row"><time>10:30</time><span>RC 파트5 30문제</span><span class="kind k-td">할 일</span></div>
-            <div class="tl-row"><time>15:00</time><span>학술제 발표 리허설</span><span class="kind k-ev">일정</span></div>
-            <div class="tl-row"><time>21:00</time><span>영단어 40개 복습</span><span class="kind k-rt">루틴</span></div>
-            <div class="tl-row"><time>22:00</time><span>브로슈어 원고 최종 검토</span><span class="kind k-td">할 일</span></div>
-          </div>
-        </div>
+      <div class="pvis blue shot">
+        <figure class="home-shot">
+          <picture>
+            <source srcset="images/home-screen.webp" type="image/webp">
+            <img src="images/home-screen.png" width="1600" height="1000" loading="lazy" alt="싱크데이 홈 화면: 오늘 달성률과 이번 주 완료 기록, 루틴, 캘린더, 오늘의 할 일이 한 화면에 보인다">
+          </picture>
+          <figcaption>실제 홈 화면 · 일정, 할 일, 루틴과 달성률을 한 화면에</figcaption>
+        </figure>
       </div>
     </div>
 

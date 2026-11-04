@@ -28,12 +28,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 닉네임 저장 및 실시간 반영
 async function saveNickname() {
     const nickname = document.getElementById('nickname-input').value.trim();
-    if(!nickname) return alert('닉네임을 입력해주세요.');
+    if(!nickname) return alert('닉네임을 입력해 주세요.');
     
     const { error } = await window.supabaseClient.from('profiles').upsert({ id: currentUser.id, nickname: nickname });
     
     if(error) { 
-        alert('저장에 실패했습니다. DB에 profiles 테이블이 있는지 확인해주세요.'); 
+        alert('닉네임을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'); 
     } else {
         const status = document.getElementById('nickname-status');
         status.style.display = 'block';
@@ -60,11 +60,11 @@ async function loadNotices() {
         .order('is_pinned', { ascending: false }).order('created_at', { ascending: false }).limit(20);
     if (error) {
         console.error('공지사항 불러오기 실패:', error);
-        box.innerHTML = '<p class="notice-empty">공지사항을 불러오지 못했습니다.</p>';
+        box.innerHTML = '<p class="notice-empty">공지사항을 불러오지 못했어요.</p>';
         return;
     }
     notices = data || [];
-    if (notices.length === 0) { box.innerHTML = '<p class="notice-empty">등록된 공지사항이 없습니다.</p>'; return; }
+    if (notices.length === 0) { box.innerHTML = '<p class="notice-empty">등록된 공지사항이 없어요.</p>'; return; }
     box.innerHTML = notices.map((n, i) => `
         <div class="notice-item" role="button" tabindex="0" onclick="openNotice(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNotice(${i})}">
             <span class="notice-date">${String(n.created_at).slice(0, 10)}</span>
@@ -96,9 +96,9 @@ async function submitInquiry() {
     const textEl = document.getElementById('inquiry-text');
     const btn = document.getElementById('inquiry-submit');
     const text = textEl.value.trim();
-    if (!text) return alert("문의하실 내용을 입력해주세요.");
-    if (text.length > 2000) return alert("문의 내용은 2000자 이내로 적어주세요.");
-    if (!currentUser) return alert("로그인 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+    if (!text) return alert("문의할 내용을 입력해 주세요.");
+    if (text.length > 2000) return alert("문의 내용은 2000자 이내로 적어 주세요.");
+    if (!currentUser) return alert("로그인 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
 
     if (btn) { btn.disabled = true; btn.textContent = '접수 중...'; }
     const { error } = await window.supabaseClient.from('inquiries').insert({ content: text, email: currentUser.email });
@@ -106,9 +106,9 @@ async function submitInquiry() {
 
     if (error) {
         console.error('문의 저장 실패:', error);
-        return alert("문의를 접수하지 못했습니다. 잠시 후 다시 시도해주세요.");
+        return alert("문의를 접수하지 못했어요. 잠시 후 다시 시도해 주세요.");
     }
-    alert(`문의가 접수되었습니다.\n답변은 아래 '내 문의 내역'에서 확인할 수 있어요.`);
+    alert(`문의가 접수됐어요.\n답변은 아래 '내 문의 내역'에서 확인할 수 있어요.`);
     closeModal('inquiry-modal');
     loadInquiries();
 }

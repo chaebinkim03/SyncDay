@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>SyncDay - 캘린더 일정 관리</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     
@@ -19,6 +19,10 @@
         .filter-btn.active { border-color: #007bff; color: #007bff; background: #f0f7ff; }
         .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
     </style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="theme-color" content="#4361ee">
 </head>
 <body class="app-layout">
     <header id="header">
@@ -41,7 +45,7 @@
         </nav>
 
         <main id="main-content">
-            <div class="dashboard-widget schedule-widget" style="height: calc(100vh - 150px); display: flex; flex-direction: column; margin-bottom: 0; padding: 25px; width: 100%; box-sizing: border-box;">
+            <div class="dashboard-widget schedule-widget" style="min-height: calc(100vh - 150px); display: flex; flex-direction: column; margin-bottom: 0; padding: 25px; width: 100%; box-sizing: border-box;">
                     
                 <div class="schedule-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
                     <h3 style="margin: 0; font-size: 1.25rem;">전체 일정 관리</h3>
@@ -54,7 +58,7 @@
                         <button class="filter-btn" onclick="openRestDaySettings()" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; font-weight: bold; margin-left: 10px;">⚙️ 휴무일 설정</button>
                     </div>
 
-                </div> <div id="calendar" style="flex: 1; width: 100%; min-height: 500px;"></div>
+                </div> <div id="calendar" style="width: 100%;"></div>
                 
             </div>
         </main>

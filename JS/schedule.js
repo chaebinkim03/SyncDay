@@ -18,7 +18,9 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
-        height: '100%',
+        // 표 높이를 내용에 맞춤 → 일정이 늘어나도 카드 밖으로 삐져나오지 않음
+        height: 'auto',
+        views: { timeGridWeek: { height: 680 } }, // 주간 시간표는 고정 높이 + 안에서 스크롤
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
         googleCalendarApiKey: 'AIzaSyCdgnHAhrQP9XuUFzMwbl0E-2ezWXZYQkw', 
 
@@ -122,7 +124,7 @@ function initCalendar() {
             Swal.fire({
                 title: `새 일정 추가`, 
                 html: `
-                    <input id="swal-input-title" class="swal2-input" placeholder="일정 내용을 입력하세요" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
+                    <input id="swal-input-title" class="swal2-input" placeholder="일정 내용을 입력해 주세요" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
                     
                     <div style="text-align: left; width: 85%; margin: 0 auto 10px auto;">
                         <label style="font-size: 12px; color: #666; font-weight: bold; margin-left: 5px;">시작 일시</label>
@@ -185,7 +187,7 @@ function initCalendar() {
         eventClick: function(info) {
             info.jsEvent.preventDefault(); // 구글 캘린더 링크로 넘어가지 않게
             if (isHolidayEvent(info.event)) {
-                Swal.fire('안내', '공휴일은 수정하거나 삭제할 수 없습니다.', 'info');
+                Swal.fire('안내', '공휴일은 수정하거나 삭제할 수 없어요.', 'info');
                 return;
             }
 
@@ -348,10 +350,10 @@ window.openRestDaySettings = function() {
             const { error } = await saveRestSetting({ type, days });
             if (error) {
                 console.error('휴무일 저장 실패:', error);
-                Swal.fire('저장 실패', '이 기기에만 적용됐어요. 잠시 후 다시 저장해주세요.', 'warning').then(() => { initCalendar(); });
+                Swal.fire('저장 실패', '이 기기에만 적용됐어요. 잠시 후 다시 저장해 주세요.', 'warning').then(() => { initCalendar(); });
                 return;
             }
-            Swal.fire('적용 완료', '캘린더와 AI 계획에 휴무일이 반영되었습니다.', 'success').then(() => { 
+            Swal.fire('적용 완료', '캘린더와 AI 계획에 휴무일을 반영했어요.', 'success').then(() => { 
                 initCalendar(); 
             });
         }

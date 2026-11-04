@@ -1,0 +1,9 @@
+# GitHub에 올리지 않을 파일 (비밀 정보 · 내 컴퓨터 전용 파일)
+node_modules/
+.vscode/
+READ.txt
+WepLog/
+supabase/.temp/
+*.zip
+.env
+.env.*

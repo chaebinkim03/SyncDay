@@ -156,7 +156,7 @@ async function updateRoutineProgress() {
     const routineList = document.getElementById('main-routine-list');
     if (!routineList) return;
     if (homeRoutines.length === 0) {
-        routineList.innerHTML = '<li class="empty-msg">오늘 할 루틴이 없습니다.</li>';
+        routineList.innerHTML = '<li class="empty-msg">오늘 할 루틴이 없어요.</li>';
         return;
     }
     routineList.innerHTML = '';
@@ -241,24 +241,117 @@ async function loadUrgentTodos() {
             .slice(0, 5);
 
         if (items.length === 0) {
-            list.innerHTML = '<li class="empty-msg">오늘 할 일이 없습니다. AI 챗봇에 목표를 알려주세요.</li>';
+            list.innerHTML = '<li class="empty-msg">오늘 할 일이 없어요. AI 챗봇에 목표를 알려 주세요.</li>';
             return;
         }
         list.innerHTML = '';
         items.forEach(task => {
-            const textStyle = task.is_completed ? 'text-decoration: line-through; color: #aaa;' : 'color: #333;';
-            const icon = task.is_completed ? '✅' : '⏳';
             const overdue = task.target_date && task.target_date < today
-                ? ' <span style="font-size: 12px; color: #e63946; font-weight: 600;">밀림</span>' : '';
+                ? '<span class="home-todo-late">밀림</span>' : '';
+            // 항목 전체를 눌러 완료/해제 (휴대폰에서도 누르기 쉽게)
             const li = document.createElement('li');
-            li.style.cssText = `padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; ${textStyle}`;
-            li.textContent = `${icon} ${task.task_content}`;
-            li.insertAdjacentHTML('beforeend', overdue);
+            li.className = 'home-todo' + (task.is_completed ? ' done' : '');
+            li.setAttribute('role', 'checkbox');
+            li.setAttribute('aria-checked', task.is_completed ? 'true' : 'false');
+            li.tabIndex = 0;
+            li.innerHTML = `<span class="home-todo-box" aria-hidden="true"></span><span class="home-todo-text"></span>${overdue}`;
+            li.querySelector('.home-todo-text').textContent = task.task_content;
+            const toggle = () => toggleHomeTodo(task, li);
+            li.addEventListener('click', toggle);
+            li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
             list.appendChild(li);
         });
     } catch(e) {
         console.error('긴급 투두 로딩 에러', e);
     }
+}
+
+// ===== 이번 주 요일별 달성 여부 (이번 주 기록을 눌렀을 때) =====
+//  하루 달성률 = (그날 완료한 루틴 + 완료한 그날 날짜의 할 일) / (그날 해야 했던 루틴 + 그날 날짜의 할 일)
+async function showWeeklyDetail() {
+    const now = new Date();
+    const today = localDateString(now);
+    const days = [];
+    for (let i = 0; i < 7; i++) days.push(localDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + i)));
+    Swal.fire({ title: '이번 주 기록을 불러오는 중...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), heightAuto: false });
+
+    try {
+        const [todoRes, routineRes, logRes] = await Promise.all([
+            window.supabaseClient.from('ai_subtasks').select('task_id, is_completed, target_date').gte('target_date', days[0]).lte('target_date', days[6]),
+            window.supabaseClient.from('routines').select('routine_id, repeat_rule, created_at'),
+            window.supabaseClient.from('completion_logs').select('item_type, item_id, done_date').gte('done_date', days[0]).lte('done_date', days[6]),
+        ]);
+        if (todoRes.error || routineRes.error || logRes.error) throw (todoRes.error || routineRes.error || logRes.error);
+
+        const todos = todoRes.data || [], routines = routineRes.data || [], logs = logRes.data || [];
+        const week = ['일', '월', '화', '수', '목', '금', '토'];
+        let achievedDays = 0, pastDays = 0;
+
+        const rows = days.map((d, i) => {
+            const [, m, dd] = d.split('-').map(Number);
+            const dayTodos = todos.filter(t => String(t.target_date).slice(0, 10) === d);
+            const dueRoutines = routines.filter(r => isRoutineDue(r.repeat_rule, d) && (!r.created_at || String(r.created_at).slice(0, 10) <= d));
+            const doneRoutineIds = new Set(logs.filter(l => l.item_type === 'routine' && String(l.done_date).slice(0, 10) === d).map(l => l.item_id));
+            const total = dayTodos.length + dueRoutines.length;
+            const done = dayTodos.filter(t => t.is_completed).length + dueRoutines.filter(r => doneRoutineIds.has(r.routine_id)).length;
+            const pct = total ? Math.round(done / total * 100) : 0;
+
+            let state, cls;
+            if (d > today) { state = '예정'; cls = 'future'; }
+            else if (total === 0) { state = '할 일 없음'; cls = 'none'; }
+            else if (pct === 100) { state = '✅ 달성'; cls = 'ok'; }
+            else if (d === today) { state = `진행 중 ${pct}%`; cls = 'today'; }
+            else { state = `미달성 ${pct}%`; cls = 'miss'; }
+            if (d <= today && total > 0) { pastDays++; if (pct === 100) achievedDays++; }
+
+            return `<div class="wk-row ${cls}${d === today ? ' is-today' : ''}">
+                <span class="wk-day">${week[i]} <small>${m}/${dd}</small></span>
+                <span class="wk-bar"><span style="width:${d > today ? 0 : pct}%"></span></span>
+                <span class="wk-count">${d > today ? (total ? `할 일 ${total}개` : '') : (total ? `${done}/${total}` : '-')}</span>
+                <span class="wk-state">${state}</span>
+            </div>`;
+        }).join('');
+
+        const fmt = (d) => { const [, m, dd] = d.split('-').map(Number); return `${m}/${dd}`; };
+        Swal.fire({
+            title: '이번 주 달성 기록',
+            html: `<p class="wk-sub">${fmt(days[0])} ~ ${fmt(days[6])} · 할 일이 있던 ${pastDays}일 중 <b>${achievedDays}일 달성</b></p>
+                   <div class="wk-list">${rows}</div>
+                   <p class="wk-note">달성 = 그날 해야 했던 루틴과 그날 날짜의 할 일을 모두 완료</p>`,
+            confirmButtonText: '닫기', confirmButtonColor: '#4361ee', heightAuto: false, width: 520,
+            didOpen: () => Swal.hideLoading() // 앞의 '불러오는 중' 표시가 남지 않게
+        });
+    } catch (e) {
+        console.error('이번 주 기록 불러오기 실패:', e);
+        Swal.fire({ title: '불러오지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const rec = document.getElementById('weekly-record');
+    if (!rec) return;
+    rec.addEventListener('click', showWeeklyDetail);
+    rec.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeeklyDetail(); } });
+});
+
+// 홈 To-do 완료 체크: 바로 화면에 반영하고 DB 저장 → 달성률·이번 주 기록 갱신
+async function toggleHomeTodo(task, li) {
+    if (li.dataset.busy) return;
+    li.dataset.busy = '1';
+    const next = !task.is_completed;
+    li.classList.toggle('done', next);
+    li.setAttribute('aria-checked', next ? 'true' : 'false');
+    const { error } = await window.supabaseClient.from('ai_subtasks').update({ is_completed: next }).eq('task_id', task.task_id);
+    delete li.dataset.busy;
+    if (error) {
+        console.error('할 일 체크 실패:', error);
+        li.classList.toggle('done', task.is_completed);
+        li.setAttribute('aria-checked', task.is_completed ? 'true' : 'false');
+        return;
+    }
+    task.is_completed = next;
+    updateRoutineProgress();
+    loadWeeklyRecord();
 }
 
 async function logout() {
@@ -281,14 +374,18 @@ async function showDaySummary(info) {
     });
 
     try {
-        const { data: schedules } = await window.supabaseClient.from('recommended_schedules').select('*').like('start_time', `${dateStr}%`);
+        // 그날 00:00 ~ 다음 날 00:00 사이에 시작하는 일정 (시간 칸은 글자가 아니라 날짜·시간 형식이라 범위로 찾음)
+        const [sy, sm, sd] = dateStr.split('-').map(Number);
+        const nextStr = localDateString(new Date(sy, sm - 1, sd + 1));
+        const { data: schedules } = await window.supabaseClient.from('recommended_schedules').select('*')
+            .gte('start_time', `${dateStr}T00:00:00`).lt('start_time', `${nextStr}T00:00:00`);
         const { data: datedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').eq('target_date', dateStr);
         const { data: undatedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').is('target_date', null).gte('created_at', `${dateStr}T00:00:00`).lte('created_at', `${dateStr}T23:59:59`);
         const todos = [...(datedTodos || []), ...(undatedTodos || [])];
         const { data: routines } = await window.supabaseClient.from('routines').select('*');
 
         const createListHTML = (items, type) => {
-            if (!items || items.length === 0) return `<div class="empty-summary">등록된 항목이 없습니다.</div>`;
+            if (!items || items.length === 0) return `<div class="empty-summary">등록된 항목이 없어요.</div>`;
             
             return items.map(item => {
                 if (type === 'schedule') {
@@ -323,6 +420,6 @@ async function showDaySummary(info) {
 
     } catch (error) {
         console.error('요약 데이터 로드 실패:', error);
-        Swal.fire('오류', '데이터를 불러오지 못했습니다.', 'error');
+        Swal.fire('오류', '데이터를 불러오지 못했어요.', 'error');
     }
 }

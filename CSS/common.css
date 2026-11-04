@@ -3,6 +3,8 @@
 * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
 body, html { margin: 0; padding: 0; background-color: #f8fafc; color: #1E293B; height: 100vh; overflow: hidden; /* 이중 스크롤 방지 */ }
 .app-layout { display: flex; flex-direction: column; height: 100vh; }
+/* 알림창(SweetAlert)이 열려도 화면 높이를 바꾸지 않게 → 왼쪽 아래 닉네임·로그아웃 위치 고정 */
+html.swal2-height-auto:root, html body.app-layout.swal2-height-auto { height: 100vh !important; overflow: hidden !important; }
 
 /* 헤더 */
 #header { height: 70px; background: white; padding: 0 30px; display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; z-index: 10; }
@@ -36,6 +38,7 @@ body, html { margin: 0; padding: 0; background-color: #f8fafc; color: #1E293B; h
 
 @media (max-width: 768px) {
     .app-layout { height: 100vh; height: 100dvh; }
+    html body.app-layout.swal2-height-auto { height: 100dvh !important; }
     #header { height: 56px; padding: 0 16px; justify-content: space-between; padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box; }
     .header-logo { font-size: 1.25rem; }
     .header-logout { display: block; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; padding: 7px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }

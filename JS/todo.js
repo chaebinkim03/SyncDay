@@ -30,7 +30,7 @@ async function fetchTodos() {
 // [CREATE] 투두 추가
 async function addTodo() {
     const content = document.getElementById('todo-input').value.trim();
-    if (!content) { Swal.fire('알림', '내용을 입력해주세요.', 'warning'); return; }
+    if (!content) { Swal.fire('알림', '내용을 입력해 주세요.', 'warning'); return; }
 
     await window.supabaseClient.from('ai_subtasks').insert([{
         task_content: content,
@@ -74,7 +74,7 @@ function showTodoOptions(id) {
                 <input type="date" id="edit-todo-date" class="swal2-input" value="${currentDate}" style="width: 100%; margin: 0 0 8px 0; box-sizing: border-box;">
                 <button type="button" onclick="postponeOneDay()" style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">하루 미루기</button>
                 ${todo.postpone_count ? `<span style="font-size: 13px; color: #c2410c; margin-left: 8px;">지금까지 ${todo.postpone_count}번 미룸</span>` : ''}
-                <p style="font-size: 12px; color: #94a3b8; margin: 8px 0 0;">날짜를 뒤로 옮기면 '미룬 횟수'가 올라갑니다.</p>
+                <p style="font-size: 12px; color: #94a3b8; margin: 8px 0 0;">날짜를 뒤로 옮기면 '미룬 횟수'가 올라가요.</p>
             </div>
         `,
         showCancelButton: true,
@@ -96,7 +96,7 @@ function showTodoOptions(id) {
                 fetchTodos(); // 리스트 새로고침
                 Swal.fire({
                     title: '수정됨', 
-                    text: '할 일이 업데이트 되었습니다.', 
+                    text: '할 일을 수정했어요.', 
                     icon: 'success', 
                     heightAuto: false // 성공 알림창에서도 덜컹거림 방지
                 });
@@ -178,7 +178,7 @@ async function splitTask(taskId, btn) {
             body: { mode: 'split', taskId, today: todayString(), restDays }
         });
         if (error) {
-            let message = '할 일을 나누지 못했습니다. 잠시 후 다시 시도해주세요.';
+            let message = '할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.';
             try { const body = await error.context.json(); if (body && body.error) message = body.error; } catch (e) {}
             throw new Error(message);
         }
@@ -188,7 +188,7 @@ async function splitTask(taskId, btn) {
         }).join('');
         Swal.fire({
             title: '작게 나눴어요',
-            html: `<p style="margin: 0 0 10px;">'${escapeTodoHtml(data.original)}'을(를) ${data.steps.length}단계로 나눠 다시 배치했습니다.</p><ul style="text-align: left; display: inline-block; margin: 0;">${items}</ul>`,
+            html: `<p style="margin: 0 0 10px;">'${escapeTodoHtml(data.original)}'을(를) ${data.steps.length}단계로 나눠 다시 배치했어요.</p><ul style="text-align: left; display: inline-block; margin: 0;">${items}</ul>`,
             icon: 'success', heightAuto: false
         });
         fetchTodos();
@@ -204,7 +204,7 @@ function renderGoals() {
     const box = document.getElementById('goal-list');
     if (!box) return;
     if (goals.length === 0) {
-        box.innerHTML = '<p class="empty-msg" style="padding: 16px 0;">아직 목표가 없습니다. 오른쪽 아래 AI 챗봇에 목표와 마감일을 알려주세요.</p>';
+        box.innerHTML = '<p class="empty-msg" style="padding: 16px 0;">아직 목표가 없어요. 오른쪽 아래 AI 챗봇에 목표와 마감일을 알려 주세요.</p>';
         return;
     }
     const today = todayString();
@@ -235,7 +235,7 @@ async function deleteGoal(goalId) {
     const count = todos.filter(t => t.goal_id === goalId).length;
     const result = await Swal.fire({
         title: '목표를 삭제할까요?',
-        html: `'${escapeTodoHtml(goal.title)}' 목표와 할 일 ${count}개가 함께 삭제됩니다.<br><small>완료 기록은 남습니다.</small>`,
+        html: `'${escapeTodoHtml(goal.title)}' 목표와 할 일 ${count}개가 함께 삭제돼요.<br><small>완료 기록은 남아요.</small>`,
         icon: 'warning', showCancelButton: true, confirmButtonText: '삭제', cancelButtonText: '취소',
         confirmButtonColor: '#dc2626', heightAuto: false
     });
@@ -243,7 +243,7 @@ async function deleteGoal(goalId) {
     const { error } = await window.supabaseClient.from('goals').delete().eq('goal_id', goalId);
     if (error) {
         console.error('목표 삭제 실패:', error);
-        Swal.fire({ title: '삭제 실패', text: '목표를 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.', icon: 'error', heightAuto: false });
+        Swal.fire({ title: '삭제 실패', text: '목표를 삭제하지 못했어요. 잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
         return;
     }
     fetchTodos();

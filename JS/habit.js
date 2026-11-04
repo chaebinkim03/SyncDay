@@ -35,7 +35,7 @@ async function addHabit() {
     const rule = document.querySelector('input[name="freq-input"]:checked').value;
     const { data: { session } } = await window.supabaseClient.auth.getSession();
 
-    if (!name.trim()) { Swal.fire({ title: '알림', text: '루틴 이름을 입력해주세요.', icon: 'warning', heightAuto: false }); return; }
+    if (!name.trim()) { Swal.fire({ title: '알림', text: '루틴 이름을 입력해 주세요.', icon: 'warning', heightAuto: false }); return; }
 
     await window.supabaseClient.from('routines').insert([{
         user_id: session.user.id,
@@ -97,7 +97,7 @@ function showHabitOptions(id) {
             const newRule = document.querySelector('input[name="edit-habit-rule"]:checked').value;
             
             if (!newName) {
-                Swal.fire({ title: '알림', text: '루틴 이름을 입력해주세요.', icon: 'warning', heightAuto: false });
+                Swal.fire({ title: '알림', text: '루틴 이름을 입력해 주세요.', icon: 'warning', heightAuto: false });
                 return;
             }
             await updateHabit(id, newName, newRule);
@@ -124,10 +124,10 @@ async function updateHabit(id, newName, newRule) {
 
     if (!error) {
         fetchHabits();
-        Swal.fire({ title: '변경됨', text: '루틴이 수정되었습니다.', icon: 'success', heightAuto: false });
+        Swal.fire({ title: '변경됨', text: '루틴을 수정했어요.', icon: 'success', heightAuto: false });
     } else {
         console.error("루틴 변경 실패:", error);
-        Swal.fire({ title: '오류', text: '변경에 실패했습니다.', icon: 'error', heightAuto: false });
+        Swal.fire({ title: '오류', text: '변경하지 못했어요.', icon: 'error', heightAuto: false });
     }
 }
 
@@ -144,7 +144,7 @@ function renderHabits() {
         li.style.cssText = `display: flex; align-items: center; padding: 15px 20px; background: white; margin-bottom: 10px; border-radius: 8px; border: 1px solid #eaeaea; box-shadow: 0 2px 4px rgba(0,0,0,0.02); gap: 15px; ${due ? '' : 'opacity: 0.6;'}`;
 
         li.innerHTML = `
-            <input type="checkbox" ${h.is_completed ? 'checked' : ''} ${due ? '' : 'disabled title="오늘은 쉬는 날입니다"'}
+            <input type="checkbox" ${h.is_completed ? 'checked' : ''} ${due ? '' : 'disabled title="오늘은 쉬는 날이에요"'}
                 onclick="toggleHabit(${h.routine_id})"
                 style="width: 22px; height: 22px; cursor: ${due ? 'pointer' : 'not-allowed'};">
 
