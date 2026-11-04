@@ -2,6 +2,11 @@
 let currentFilterColor = 'all';
 let calendar;
 
+// 공휴일(구글 캘린더) 일정인지 확인: 공휴일 묶음(id)이거나 구글 캘린더 링크가 붙은 일정
+function isHolidayEvent(ev) {
+    return (ev.source && ev.source.id === 'holidays') || (!!ev.url && ev.url.indexOf('google.com') !== -1);
+}
+
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -32,8 +37,7 @@ function initCalendar() {
 
       // 공휴일(주황색)만 얇은 선으로 뼈대 생성
         eventContent: function(arg) {
-            // 🔥 backgroundColor 대신 classNames 확인으로 변경!
-            if (arg.event.classNames.includes('holiday-event-wrapper')) {
+            if (isHolidayEvent(arg.event)) {
                 return {
                     html: `
                         <div class="pastel-holiday-label">
@@ -68,6 +72,7 @@ function initCalendar() {
         
         eventSources: [
             {
+                id: 'holidays',
                 googleCalendarId: 'ko.south_korea#holiday@group.v.calendar.google.com',
                 color: '#ff9f43', 
                 // textColor: '#ffffff',
@@ -178,9 +183,8 @@ function initCalendar() {
         },
 
         eventClick: function(info) {
-            // 🔥 여기도 classNames 확인으로 변경!
-            if (info.event.classNames.includes('holiday-event-wrapper')) {
-                info.jsEvent.preventDefault();
+            info.jsEvent.preventDefault(); // 구글 캘린더 링크로 넘어가지 않게
+            if (isHolidayEvent(info.event)) {
                 Swal.fire('안내', '공휴일은 수정하거나 삭제할 수 없습니다.', 'info');
                 return;
             }
