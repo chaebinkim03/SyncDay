@@ -376,61 +376,99 @@ async function logout() {
 
 // 홈 캘린더에서 날짜(또는 일정)를 눌렀을 때 그날 일정·할 일 요약
 async function showDaySummary(info) {
-    const dateStr = info.dateStr; 
-    
-    Swal.fire({
-        title: '데이터를 불러오는 중...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
+    const dateStr = info.dateStr;
+    const today = localDateString();
+    const isPast = dateStr < today, isFuture = dateStr > today;
+
+    Swal.fire({ title: '불러오는 중...', allowOutsideClick: false, heightAuto: false, didOpen: () => { Swal.showLoading(); } });
 
     try {
         // 그날 00:00 ~ 다음 날 00:00 사이에 시작하는 일정 (시간 칸은 글자가 아니라 날짜·시간 형식이라 범위로 찾음)
         const [sy, sm, sd] = dateStr.split('-').map(Number);
         const nextStr = localDateString(new Date(sy, sm - 1, sd + 1));
-        const { data: schedules } = await window.supabaseClient.from('recommended_schedules').select('*')
-            .gte('start_time', `${dateStr}T00:00:00`).lt('start_time', `${nextStr}T00:00:00`);
-        const { data: datedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').eq('target_date', dateStr);
-        const { data: undatedTodos } = await window.supabaseClient.from('ai_subtasks').select('*').is('target_date', null).gte('created_at', `${dateStr}T00:00:00`).lte('created_at', `${dateStr}T23:59:59`);
-        const todos = [...(datedTodos || []), ...(undatedTodos || [])];
-        const { data: routines } = await window.supabaseClient.from('routines').select('*');
+        const [schRes, datedRes, undatedRes, routineRes, logRes] = await Promise.all([
+            window.supabaseClient.from('recommended_schedules').select('*')
+                .gte('start_time', `${dateStr}T00:00:00`).lt('start_time', `${nextStr}T00:00:00`).order('start_time', { ascending: true }),
+            window.supabaseClient.from('ai_subtasks').select('*').eq('target_date', dateStr),
+            window.supabaseClient.from('ai_subtasks').select('*').is('target_date', null).gte('created_at', `${dateStr}T00:00:00`).lt('created_at', `${nextStr}T00:00:00`),
+            window.supabaseClient.from('routines').select('*'),
+            window.supabaseClient.from('completion_logs').select('item_type, item_id, title, done_date').eq('done_date', dateStr),
+        ]);
+        const schedules = schRes.data || [];
+        const todos = [...(datedRes.data || []), ...(undatedRes.data || [])];
+        const logs = (logRes.data || []).filter(l => String(l.done_date).slice(0, 10) === dateStr);
 
-        const createListHTML = (items, type) => {
-            if (!items || items.length === 0) return `<div class="empty-summary">등록된 항목이 없어요.</div>`;
-            
-            return items.map(item => {
-                if (type === 'schedule') {
-                    const time = item.start_time.includes('T') ? item.start_time.split('T')[1].substring(0, 5) : '종일';
-                    return `<div class="summary-item">⏰ ${time} - <strong>${item.schedule_title}</strong></div>`;
-                } else if (type === 'todo') {
-                    const isDone = item.is_completed; 
-                    const title = item.task_content || '내용 없음'; 
-                    return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '✅' : '⬜️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
-                } else if (type === 'routine') {
-                    const isDone = item.is_completed; 
-                    const title = item.routine_title || item.title || item.routine_name || '진행중인 루틴'; 
-                    return `<div class="summary-item ${isDone ? 'item-completed' : ''}">${isDone ? '🔁' : '▶️'} <span style="${isDone ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${title}</span></div>`;
-                }
-            }).join('');
-        };
+        // --- 할 일: 그날 날짜의 할 일 + (밀린 일이라도) 그날 완료한 기록
+        const doneItems = [], leftItems = [];
+        const seenTodo = new Set();
+        todos.forEach(t => {
+            seenTodo.add(t.task_id);
+            const item = { title: t.task_content || '내용 없음', kind: '할 일', postpone: t.postpone_count || 0 };
+            (t.is_completed ? doneItems : leftItems).push(item);
+        });
+        logs.filter(l => l.item_type === 'todo' && !seenTodo.has(l.item_id))
+            .forEach(l => { seenTodo.add(l.item_id); doneItems.push({ title: l.title || '할 일', kind: '할 일' }); });
+
+        // --- 루틴: 그날 해야 했던 루틴만 (매일/평일/주말 + 만든 날 이후), 완료 여부는 그날 기록으로
+        const doneRoutineIds = new Set(logs.filter(l => l.item_type === 'routine').map(l => l.item_id));
+        (routineRes.data || [])
+            .filter(r => isRoutineDue(r.repeat_rule, dateStr) && (!r.created_at || String(r.created_at).slice(0, 10) <= dateStr))
+            .forEach(r => {
+                const doneToday = dateStr === today && r.is_completed && String(r.last_date || '').slice(0, 10) === today;
+                const item = { title: routineTitle(r), kind: '루틴' };
+                (doneRoutineIds.has(r.routine_id) || doneToday ? doneItems : leftItems).push(item);
+            });
+
+        const total = doneItems.length + leftItems.length;
+        const pct = total ? Math.round(doneItems.length / total * 100) : 0;
+        const esc = (v) => escapeRoutineHtml(v);
+        const row = (it, done) => `<div class="sum-row${done ? ' done' : ''}">
+                <span class="sum-box" aria-hidden="true"></span>
+                <span class="sum-text">${esc(it.title)}</span>
+                ${it.postpone ? `<span class="sum-tag late">미룸 ${it.postpone}</span>` : ''}
+                <span class="sum-tag ${it.kind === '루틴' ? 'rt' : 'td'}">${it.kind}</span>
+            </div>`;
+        const section = (title, cls, items, done, emptyText) => `<div class="sum-section ${cls}">
+                <div class="sum-title">${title} <small>${items.length}</small></div>
+                ${items.length ? items.map(it => row(it, done)).join('') : `<div class="empty-summary">${emptyText}</div>`}
+            </div>`;
+
+        const week = ['일', '월', '화', '수', '목', '금', '토'];
+        const title = `${sm}월 ${sd}일 (${week[new Date(sy, sm - 1, sd).getDay()]})`;
+        let head;
+        if (isFuture) head = `<div class="sum-head"><span>${total ? `예정된 할 일·루틴 <b>${total}개</b>` : '아직 예정된 할 일이 없어요'}</span></div>`;
+        else if (!total) head = `<div class="sum-head"><span>이날은 할 일이 없었어요</span></div>`;
+        else head = `<div class="sum-head"><span>${total}개 중 <b>${doneItems.length}개 완료</b>${pct === 100 ? ' · 모두 달성 🎉' : ''}</span><b class="sum-pct">${pct}%</b></div>
+            <div class="sum-bar"><span style="width:${pct}%"></span></div>`;
+
+        const leftTitle = isPast ? '⏳ 못 한 일' : (isFuture ? '🗓 예정' : '⏳ 남은 일');
+        const scheduleHtml = `<div class="sum-section sch">
+                <div class="sum-title">🗓 일정 <small>${schedules.length}</small></div>
+                ${schedules.length ? schedules.map(item => {
+                    const st = String(item.start_time || '');
+                    const time = st.includes('T') ? st.split('T')[1].substring(0, 5) : (st.length > 10 ? st.substring(11, 16) : '종일');
+                    return `<div class="sum-row sch-row"><span class="sum-time">${time}</span><span class="sum-text">${esc(item.schedule_title || '일정')}</span></div>`;
+                }).join('') : '<div class="empty-summary">등록된 일정이 없어요.</div>'}
+            </div>`;
 
         Swal.fire({
-            title: `${dateStr.split('-')[1]}월 ${dateStr.split('-')[2]}일 요약`,
-            html: `
-                <div class="summary-container">
-                    <div class="summary-section"><div class="summary-title" style="color: #4361ee;">🗓️ 오늘의 일정</div>${createListHTML(schedules, 'schedule')}</div>
-                    <div class="summary-section"><div class="summary-title" style="color: #e63946;">🎯 투두 완료 현황</div>${createListHTML(todos, 'todo')}</div>
-                    <div class="summary-section"><div class="summary-title" style="color: #2ecc71;">🔁 루틴 달성 현황</div>${createListHTML(routines, 'routine')}</div>
-                </div>
-            `,
+            title,
+            html: `<div class="summary-container">
+                    ${head}
+                    ${isFuture ? '' : section('✅ 한 일', 'ok', doneItems, true, isPast ? '이날 완료한 일이 없어요.' : '아직 완료한 일이 없어요.')}
+                    ${(leftItems.length || isFuture) ? section(leftTitle, isFuture ? 'plan' : 'left', leftItems, false, '예정된 할 일이 없어요.') : ''}
+                    ${scheduleHtml}
+                </div>`,
             position: 'bottom',
             showConfirmButton: false,
             showCloseButton: true,
+            heightAuto: false,
+            didOpen: () => Swal.hideLoading(),
             customClass: { popup: 'summary-bottom-sheet' }
         });
 
     } catch (error) {
         console.error('요약 데이터 로드 실패:', error);
-        Swal.fire('오류', '데이터를 불러오지 못했어요.', 'error');
+        Swal.fire({ title: '오류', text: '데이터를 불러오지 못했어요.', icon: 'error', heightAuto: false });
     }
 }
