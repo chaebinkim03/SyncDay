@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     if(!currentUserId) return;
 
     // [에러 방어벽]: 하나의 위젯에 문제가 생겨도 다른 위젯은 정상 작동하도록 보호
-    try { initMiniCalendar(); } catch(e) { console.error("캘린더 로딩 에러:", e); }
+    // 내 휴무일 설정(계정별)을 불러온 뒤 캘린더를 그림 → 캘린더 화면에서 바꾼 휴무일이 홈에도 똑같이 보임
+    const restReady = typeof ensureRestSetting === 'function' ? ensureRestSetting() : Promise.resolve();
+    restReady.finally(() => { try { initMiniCalendar(); } catch(e) { console.error("캘린더 로딩 에러:", e); } });
     try { updateRoutineProgress(); } catch(e) { console.error("달성도 및 루틴 로딩 에러:", e); }
     try { loadWeeklyRecord(); } catch(e) { console.error("완료 기록 로딩 에러:", e); }
     try { loadUrgentTodos(); } catch(e) { console.error("투두 로딩 에러:", e); }
@@ -56,8 +58,15 @@ function initMiniCalendar() {
             const day = info.date.getDay();
             const dayNum = info.el.querySelector('.fc-daygrid-day-number');
             if (dayNum) {
-                if (day === 0) dayNum.style.color = '#e63946';
-                else if (day === 6) dayNum.style.color = '#4361ee';
+                // 캘린더 화면과 같은 규칙: 기본은 일 빨강·토 파랑, 직접 고른 휴무일이면 그 요일만 빨강
+                const rest = typeof getRestSetting === 'function' ? getRestSetting() : { type: 'default', days: [] };
+                dayNum.style.color = '#333333';
+                if (rest.type === 'weekly') {
+                    if (rest.days.includes(day)) dayNum.style.color = '#e63946';
+                } else {
+                    if (day === 0) dayNum.style.color = '#e63946';
+                    else if (day === 6) dayNum.style.color = '#4361ee';
+                }
             }
         },
         dayCellContent: function(info) {
@@ -160,13 +169,15 @@ async function updateRoutineProgress() {
         return;
     }
     routineList.innerHTML = '';
+    // To-do와 같은 체크박스 모양 (항목 전체를 눌러 체크/해제)
     homeRoutines.forEach(item => {
-        const isDone = item.is_completed;
-        const textStyle = isDone ? 'text-decoration: line-through; color: #aaa;' : 'color: #333;';
-        const icon = isDone ? '✅' : '▶️';
+        const done = !!item.is_completed;
         routineList.innerHTML += `
-            <li onclick="toggleRoutine(${item.routine_id})" style="cursor: pointer; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; ${textStyle} transition: 0.2s;">
-                ${icon} ${escapeRoutineHtml(routineTitle(item))}
+            <li class="home-todo${done ? ' done' : ''}" role="checkbox" aria-checked="${done}" tabindex="0"
+                onclick="toggleRoutine(${item.routine_id})"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleRoutine(${item.routine_id})}">
+                <span class="home-todo-box" aria-hidden="true"></span>
+                <span class="home-todo-text">${escapeRoutineHtml(routineTitle(item))}</span>
             </li>`;
     });
 }

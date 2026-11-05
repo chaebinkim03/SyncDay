@@ -24,28 +24,85 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 }
 
-const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash"; // 기존 chat.js에서 쓰던 모델. 바꾸려면 GEMINI_MODEL 시크릿 설정
+// ---------------------------------------------------------------- Gemini 호출 (혼잡 대비)
+// 기본 모델이 붐비면(429/500/503/504, 시간 초과) 잠깐 쉬었다 다시 시도하고, 그래도 안 되면 대체 모델로 시도합니다.
+// 모델 바꾸기: GEMINI_MODEL 시크릿 / 대체 모델: GEMINI_FALLBACK_MODELS (쉼표로 구분)
+const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash";
+const FALLBACK_MODELS = (Deno.env.get("GEMINI_FALLBACK_MODELS") ?? "gemini-flash-latest,gemini-2.5-flash")
+  .split(",").map((m) => m.trim()).filter((m) => m && m !== GEMINI_MODEL);
+const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+const TOTAL_BUDGET_MS = 75_000; // 사용자가 기다리는 최대 시간
 
-async function askGemini(prompt: string, schema: unknown): Promise<unknown> {
+class GeminiError extends Error {
+  constructor(message: string, public status: number, public busy: boolean) { super(message); }
+}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function callGemini(model: string, prompt: string, schema: unknown, timeoutMs: number): Promise<unknown> {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) throw new Error("GEMINI_API_KEY가 설정되지 않았습니다.");
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
+  if (!apiKey) throw new GeminiError("GEMINI_API_KEY가 설정되지 않았습니다.", 0, false);
+  let res: Response;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      signal: AbortSignal.timeout(45_000),
+      signal: AbortSignal.timeout(timeoutMs),
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json", responseSchema: schema, temperature: 0.6 },
       }),
-    },
-  );
-  const data = await res.json();
-  if (!res.ok) throw new Error(`Gemini 오류(${res.status}): ${data?.error?.message ?? "알 수 없음"}`);
+    });
+  } catch (e) {
+    // 시간 초과·네트워크 오류도 '붐빔'으로 보고 다시 시도
+    throw new GeminiError(`Gemini 연결 실패: ${(e as Error).message}`, 0, true);
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new GeminiError(`Gemini 오류(${res.status}): ${data?.error?.message ?? "알 수 없음"}`, res.status, RETRYABLE.has(res.status));
+  }
   const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new GeminiError("Gemini 응답이 JSON 형식이 아님", 200, false);
+  }
+}
+
+async function askGemini(prompt: string, schema: unknown, startedAt = Date.now()): Promise<unknown> {
+  // [모델, 시도 전 대기 ms]: 기본 모델 3번(바로 → 1.5초 → 4초) → 대체 모델들
+  const attempts: [string, number][] = [
+    [GEMINI_MODEL, 0], [GEMINI_MODEL, 1500], [GEMINI_MODEL, 4000],
+    ...FALLBACK_MODELS.map((m): [string, number] => [m, 500]),
+  ];
+  const unavailable = new Set<string>(); // 없는 모델(404)은 다시 부르지 않음
+  let last: GeminiError | null = null;
+  for (const [model, wait] of attempts) {
+    if (unavailable.has(model)) continue;
+    const left = TOTAL_BUDGET_MS - (Date.now() - startedAt) - wait;
+    if (left < 8_000) break; // 남은 시간이 부족하면 그만
+    if (wait) await sleep(wait);
+    const t0 = Date.now();
+    try {
+      const result = await callGemini(model, prompt, schema, Math.min(40_000, left));
+      console.log(`gemini ok model=${model} ${Date.now() - t0}ms`);
+      return result;
+    } catch (e) {
+      const err = e instanceof GeminiError ? e : new GeminiError(String(e), 0, true);
+      last = err;
+      console.warn(`gemini fail model=${model} status=${err.status} ${Date.now() - t0}ms: ${err.message}`);
+      if (err.status === 404) { unavailable.add(model); continue; }
+      if (!err.busy && err.status !== 200) throw err; // 키 오류(400/401/403) 등은 다시 해도 소용없음
+    }
+  }
+  throw last ?? new GeminiError("Gemini 호출 실패", 0, true);
+}
+
+// 실패 이유에 맞는 안내 문구
+function aiErrorResponse(e: unknown, fallbackMessage: string) {
+  if (e instanceof GeminiError && e.busy) {
+    return json({ error: "AI 서버가 잠시 붐벼요. 1~2분 뒤 다시 시도해 주세요.", code: "busy" }, 503);
+  }
+  return json({ error: fallbackMessage, code: "ai_failed" }, 502);
 }
 
 // AI가 나눈 할 일은 투두(ai_subtasks)에 날짜별로 저장
@@ -65,18 +122,22 @@ async function handlePlan(supabase: SupabaseClient, userId: string, body: unknow
   const dates = listAvailableDates(input.today, input.deadline, input.restDays);
   if (dates.length === 0) return json({ error: "마감일까지 휴무일을 빼면 남는 날이 없어요." }, 400);
 
+  console.log(`plan start goal="${input.goal}" deadline=${input.deadline} days=${dates.length}`);
+  const startedAt = Date.now();
   let plan = null;
-  for (let attempt = 0; attempt < 2 && (!plan || plan.tasks.length === 0); attempt++) {
-    try {
-      plan = sanitizePlan(await askGemini(buildPrompt(input, dates), RESPONSE_SCHEMA), dates, input.minutesPerDay);
-    } catch (e) {
-      console.error("decompose-goal plan gemini", attempt, e);
-      if (attempt === 1) return json({ error: "AI가 계획을 만들지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
+  try {
+    plan = sanitizePlan(await askGemini(buildPrompt(input, dates), RESPONSE_SCHEMA, startedAt), dates, input.minutesPerDay);
+    if (plan.tasks.length === 0) { // 쓸 수 있는 할 일이 없으면 한 번 더
+      plan = sanitizePlan(await askGemini(buildPrompt(input, dates), RESPONSE_SCHEMA, startedAt), dates, input.minutesPerDay);
     }
+  } catch (e) {
+    console.error("decompose-goal plan gemini", e);
+    return aiErrorResponse(e, "AI가 계획을 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
   }
   if (!plan || plan.tasks.length === 0) {
-    return json({ error: "AI가 계획을 만들지 못했어요. 목표를 조금 더 구체적으로 적어 주세요." }, 502);
+    return json({ error: "AI가 계획을 만들지 못했어요. 목표를 조금 더 구체적으로 적어 주세요.", code: "empty" }, 502);
   }
+  console.log(`plan ai done tasks=${plan.tasks.length} ${Date.now() - startedAt}ms`);
 
   // 목표 저장 → 투두 저장 (중간에 실패하면 목표를 지워 반쯤 저장된 데이터가 남지 않게)
   const { data: goal, error: goalError } = await supabase
@@ -94,6 +155,7 @@ async function handlePlan(supabase: SupabaseClient, userId: string, body: unknow
     await supabase.from("goals").delete().eq("goal_id", goal.goal_id);
     return json({ error: "계획을 저장하지 못했어요. 잠시 후 다시 시도해 주세요." }, 500);
   }
+  console.log(`plan saved goal_id=${goal.goal_id} total ${Date.now() - startedAt}ms`);
 
   return json({
     goalId: goal.goal_id,
@@ -128,17 +190,17 @@ async function handleSplit(supabase: SupabaseClient, userId: string, body: unkno
   const maxMinutes = stepMaxMinutes(minutes);
 
   let steps: { title: string; minutes: number }[] = [];
-  for (let attempt = 0; attempt < 2 && steps.length === 0; attempt++) {
-    try {
-      steps = sanitizeSteps(
-        await askGemini(buildSplitPrompt(task.task_content, task.postpone_count ?? 0, maxMinutes, goalTitle), SPLIT_SCHEMA),
-        maxMinutes,
-      );
-    } catch (e) {
-      console.error("decompose-goal split gemini", attempt, e);
-    }
+  const startedAt = Date.now();
+  const prompt = buildSplitPrompt(task.task_content, task.postpone_count ?? 0, maxMinutes, goalTitle);
+  try {
+    steps = sanitizeSteps(await askGemini(prompt, SPLIT_SCHEMA, startedAt), maxMinutes);
+    if (steps.length === 0) steps = sanitizeSteps(await askGemini(prompt, SPLIT_SCHEMA, startedAt), maxMinutes);
+  } catch (e) {
+    console.error("decompose-goal split gemini", e);
+    return aiErrorResponse(e, "AI가 할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.");
   }
-  if (steps.length === 0) return json({ error: "AI가 할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요." }, 502);
+  if (steps.length === 0) return json({ error: "AI가 할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.", code: "empty" }, 502);
+  console.log(`split ai done steps=${steps.length} ${Date.now() - startedAt}ms`);
 
   const dates = nextAvailableDates(input.today, input.restDays, steps.length);
   const tasks: DatedTask[] = steps.map((s, i) => ({ date: dates[i], title: s.title, minutes: s.minutes }));

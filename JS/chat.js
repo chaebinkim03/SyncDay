@@ -78,6 +78,28 @@ const chatWidgetCode = `
     .chat-footer input { flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 10px; outline: none; font-size: 0.85rem; }
     .chat-footer button { padding: 8px 15px; border-radius: 10px; background: #4361ee; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
 
+    /* 계획 만드는 중 표시 */
+    .msg-loading .stage { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #3730a3; }
+    .msg-loading .dots { display: inline-flex; gap: 3px; }
+    .msg-loading .dots i { width: 6px; height: 6px; border-radius: 50%; background: #6366f1; animation: chatDot 1s infinite; }
+    .msg-loading .dots i:nth-child(2) { animation-delay: .15s; } .msg-loading .dots i:nth-child(3) { animation-delay: .3s; }
+    .msg-loading .bar { height: 4px; background: #e0e7ff; border-radius: 999px; overflow: hidden; margin: 8px 0 6px; }
+    .msg-loading .bar span { display: block; height: 100%; width: 0; background: #4361ee; border-radius: 999px; transition: width 1s linear; }
+    .msg-loading small { color: #64748b; }
+    @keyframes chatDot { 0%,100% { opacity: .25; } 50% { opacity: 1; } }
+    .retry-btn { margin-top: 8px; padding: 6px 12px !important; font-size: 0.8rem !important; border-radius: 8px; background: #4361ee; color: #fff; border: none; cursor: pointer; font-weight: 700; }
+    /* 완료 알림: 챗봇 버튼 배지 + 화면 위 토스트 */
+    #chat-icon.has-new::after { content: ''; position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; }
+    #chat-icon { position: relative; }
+    #chat-icon.has-new { animation: chatNudge 1.2s ease-in-out 2; }
+    @keyframes chatNudge { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+    .chat-toast { position: fixed; top: 84px; right: 24px; z-index: 10001; max-width: 360px; background: #fff; border: 1px solid #c7d2fe; border-left: 4px solid #4361ee; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,.15); padding: 12px 14px; font-size: 0.9rem; color: #1e293b; display: flex; gap: 10px; align-items: flex-start; animation: toastIn .3s ease-out; font-family: 'Pretendard', sans-serif; }
+    .chat-toast.error { border-left-color: #ef4444; border-color: #fecaca; }
+    .chat-toast .t-body { flex: 1; line-height: 1.5; }
+    .chat-toast a { display: inline-block; margin-top: 6px; color: #4361ee; font-weight: 700; text-decoration: none; }
+    .chat-toast button { background: none; border: none; font-size: 1.1rem; color: #94a3b8; cursor: pointer; padding: 0 2px; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
     /* 모바일: 아래 탭바 위에 버튼, 창은 화면 폭에 맞춤 */
     @media (max-width: 768px) {
         #chat-widget-container { right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
@@ -86,6 +108,7 @@ const chatWidgetCode = `
         #chat-window.dir-up-left, #chat-window.dir-up-right { bottom: 72px; }
         #chat-window.dir-down-left, #chat-window.dir-down-right { top: 72px; }
         #chat-window[class]::before, #chat-window[class]::after { display: none !important; }
+        .chat-toast { top: calc(68px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; max-width: none; }
     }
 
     @keyframes chatFadeIn {
@@ -330,6 +353,7 @@ window.addEventListener('touchend', onDragEnd);
 icon.addEventListener('click', () => {
     if (hasMoved) return; 
     windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex'; // 첫 클릭에 바로 열리도록
+    if (windowEl.style.display === 'flex') icon.classList.remove('has-new');
     placeChatWindow();
     saveState();
 });
@@ -397,10 +421,64 @@ function refreshPlannerViews() {
     if (typeof calendar !== 'undefined' && calendar) calendar.refetchEvents();
 }
 
-async function sendMessage() {
-    const goal = chatInput.value.trim();
-    const deadline = deadlineInput.value;
-    const minutesPerDay = Number(minutesSelect.value);
+// ===== 계획 만드는 동안: 단계 표시 / 끝나면: 알림 =====
+const PLAN_STAGES = [
+    [0, '목표를 분석하고 있어요'],
+    [4, '마감일까지 쓸 수 있는 날을 계산하고 있어요'],
+    [9, '날짜별 할 일로 나누고 있어요'],
+    [20, 'AI 서버가 붐벼서 다시 시도하고 있어요'],
+    [45, '거의 다 됐어요. 조금만 기다려 주세요'],
+];
+function loadingHtml(sec) {
+    const stage = PLAN_STAGES.filter(st => sec >= st[0]).pop()[1];
+    const pct = Math.min(95, Math.round(100 * (1 - Math.exp(-sec / 14))));
+    return `<div class="stage"><span class="dots"><i></i><i></i><i></i></span>${stage}</div>
+        <div class="bar"><span style="width:${pct}%"></span></div>
+        <small>${sec}초 · 창을 닫거나 다른 화면으로 가도 괜찮아요. 완성되면 알려 드릴게요.</small>`;
+}
+function startLoading(id, startedAt) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const tick = () => { const n = document.getElementById(id); if (n) n.innerHTML = loadingHtml(Math.floor((Date.now() - startedAt) / 1000)); };
+    tick();
+    return setInterval(tick, 1000);
+}
+
+function showChatToast(html, { error = false, link = null } = {}) {
+    document.querySelectorAll('.chat-toast').forEach(t => t.remove());
+    const t = document.createElement('div');
+    t.className = 'chat-toast' + (error ? ' error' : '');
+    t.setAttribute('role', 'status');
+    t.innerHTML = `<div class="t-body">${html}${link ? `<br><a href="${link.href}">${link.label} ›</a>` : ''}</div><button type="button" aria-label="닫기">×</button>`;
+    t.querySelector('button').addEventListener('click', () => t.remove());
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 9000);
+}
+
+// 결과가 나왔을 때: 챗봇 창이 닫혀 있으면 배지, 다른 탭을 보고 있으면 탭 제목, 화면 위 토스트
+const baseTitle = document.title;
+function notifyPlanDone(html, { error = false } = {}) {
+    if (windowEl.style.display !== 'flex') icon.classList.add('has-new');
+    const onTodo = /todo\.html$/.test(location.pathname);
+    showChatToast(html, { error, link: (!error && !onTodo) ? { href: 'todo.html', label: '투두에서 보기' } : null });
+    if (document.hidden) document.title = (error ? '(!) ' : '(1) 계획 완성 · ') + baseTitle;
+    if (!error && navigator.vibrate) { try { navigator.vibrate(120); } catch (e) {} }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) document.title = baseTitle; });
+
+// 다른 화면으로 이동해도 결과를 알려 주기 위한 표시 (같은 탭 안에서만)
+function setPending(v) { try { v ? sessionStorage.setItem('chatPending', JSON.stringify(v)) : sessionStorage.removeItem('chatPending'); } catch (e) {} }
+function getPending() { try { return JSON.parse(sessionStorage.getItem('chatPending')); } catch (e) { return null; } }
+
+let lastRequest = null;
+
+async function sendMessage(retryReq) {
+    const req = retryReq || {
+        goal: chatInput.value.trim(),
+        deadline: deadlineInput.value,
+        minutesPerDay: Number(minutesSelect.value),
+    };
+    const { goal, deadline, minutesPerDay } = req;
     if (!goal || isPlanning) return;
     if (!deadline) { addAiMessage('마감일을 선택해 주세요.', true); return; }
 
@@ -408,11 +486,17 @@ async function sendMessage() {
     sendBtn.disabled = true;
     if (typeof ensureRestSetting === 'function') await ensureRestSetting();
     const restDays = getRestDays();
-    chatMessages.innerHTML += `<div class="msg user-msg">${escapeHtml(goal)}<br><small>마감 ${formatDay(deadline)} · 하루 ${minutesPerDay}분 · ${restDaysLabel(restDays)}</small></div>`;
-    chatInput.value = '';
-    const loadingId = 'loading-' + Date.now();
-    chatMessages.innerHTML += `<div id="${loadingId}" class="msg ai-msg">⏳ 마감일까지 날짜별 계획을 만들고 있어요... (최대 30초)</div>`;
+    lastRequest = { goal, deadline, minutesPerDay };
+    if (!retryReq) {
+        chatMessages.innerHTML += `<div class="msg user-msg">${escapeHtml(goal)}<br><small>마감 ${formatDay(deadline)} · 하루 ${minutesPerDay}분 · ${restDaysLabel(restDays)}</small></div>`;
+        chatInput.value = '';
+    }
+    const startedAt = Date.now();
+    const loadingId = 'loading-' + startedAt;
+    chatMessages.innerHTML += `<div id="${loadingId}" class="msg ai-msg msg-loading"></div>`;
+    const timer = startLoading(loadingId, startedAt);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    setPending({ goal, startedAt });
     saveState();
 
     try {
@@ -421,8 +505,10 @@ async function sendMessage() {
         });
         if (error) {
             let message = '계획을 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
-            try { const body = await error.context.json(); if (body && body.error) message = body.error; } catch (e) {}
-            throw new Error(message);
+            let code = '';
+            try { const body = await error.context.json(); if (body && body.error) { message = body.error; code = body.code || ''; } } catch (e) {}
+            const err = new Error(message); err.code = code; err.retryable = !error.context || !error.context.status || error.context.status >= 500;
+            throw err;
         }
 
         const tasks = data.tasks || [];
@@ -441,17 +527,70 @@ async function sendMessage() {
             + (preview ? `<div style="margin-top:8px"><b>${firstLabel}</b></div><ul class="plan-list">${preview}</ul>` : '')
             + capped
             + '<small>나머지는 투두 화면에서 날짜가 되면 하나씩 보여 드릴게요.</small>');
+        notifyPlanDone(`✅ <b>${escapeHtml(data.goal)}</b> 계획이 완성됐어요!` + (firstTasks.length ? `<br>${escapeHtml(firstLabel)}: ${escapeHtml(firstTasks[0].title)}` : ''));
         refreshPlannerViews();
     } catch (err) {
         console.error('decompose-goal 오류:', err);
         document.getElementById(loadingId)?.remove();
-        addAiMessage(escapeHtml(err.message || '오류가 생겼어요. 잠시 후 다시 시도해 주세요.'), true);
+        const canRetry = err.code === 'busy' || err.code === 'ai_failed' || err.code === 'empty' || err.retryable !== false;
+        addAiMessage(escapeHtml(err.message || '오류가 생겼어요. 잠시 후 다시 시도해 주세요.')
+            + (canRetry ? '<br><button type="button" class="retry-btn">같은 목표로 다시 시도</button>' : ''), true);
+        notifyPlanDone(escapeHtml(err.message || '계획을 만들지 못했어요.'), { error: true });
     } finally {
+        clearInterval(timer);
+        setPending(null);
         isPlanning = false;
         sendBtn.disabled = false;
         saveState();
     }
 }
 
-sendBtn.addEventListener('click', sendMessage);
+// '다시 시도' 버튼 (저장된 대화에서도 동작하도록 위임)
+chatMessages.addEventListener('click', (e) => {
+    const b = e.target.closest('.retry-btn');
+    if (!b || isPlanning) return;
+    const req = lastRequest || (() => { try { return JSON.parse(sessionStorage.getItem('chatLastRequest')); } catch (x) { return null; } })();
+    if (!req) return;
+    b.remove();
+    sendMessage(req);
+});
+// 페이지를 옮겨도 마지막 요청을 기억 (다시 시도용)
+window.addEventListener('pagehide', () => { try { if (lastRequest) sessionStorage.setItem('chatLastRequest', JSON.stringify(lastRequest)); } catch (e) {} });
+
+// 계획을 만드는 도중에 다른 화면으로 이동했다면: 새 화면에서 결과(목표 저장 여부)를 확인해 알려 줌
+(function resumePending() {
+    chatMessages.querySelectorAll('.msg-loading').forEach(n => n.remove()); // 이전 화면의 '만드는 중' 표시 정리
+    const p = getPending();
+    if (!p) return;
+    const LIMIT = 120000;
+    if (Date.now() - p.startedAt > LIMIT) { setPending(null); return; }
+    const id = 'loading-' + p.startedAt;
+    chatMessages.innerHTML += `<div id="${id}" class="msg ai-msg msg-loading"></div>`;
+    const timer = startLoading(id, p.startedAt);
+    const since = new Date(p.startedAt - 10000).toISOString();
+    const check = async () => {
+        try {
+            const { data } = await window.supabaseClient.from('goals').select('goal_id, title, created_at')
+                .eq('title', p.goal).gte('created_at', since).order('created_at', { ascending: false }).limit(1);
+            if (data && data.length) {
+                clearInterval(poll); clearInterval(timer); setPending(null);
+                document.getElementById(id)?.remove();
+                addAiMessage(`✅ <b>${escapeHtml(p.goal)}</b> 계획 완성! 투두 화면에서 날짜별 할 일을 확인해 보세요.`);
+                notifyPlanDone(`✅ <b>${escapeHtml(p.goal)}</b> 계획이 완성됐어요!`);
+                refreshPlannerViews();
+                return;
+            }
+        } catch (e) {}
+        if (Date.now() - p.startedAt > LIMIT) {
+            clearInterval(poll); clearInterval(timer); setPending(null);
+            document.getElementById(id)?.remove();
+            addAiMessage('화면을 옮기는 사이 계획 결과를 받지 못했어요. 투두 화면에서 확인하거나 다시 시도해 주세요.'
+                + '<br><button type="button" class="retry-btn">같은 목표로 다시 시도</button>', true);
+        }
+    };
+    const poll = setInterval(check, 4000);
+    setTimeout(check, 1500);
+})();
+
+sendBtn.addEventListener('click', () => sendMessage());
 chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
