@@ -28,7 +28,7 @@ function json(body: unknown, status = 200) {
 // 기본 모델이 붐비면(429/500/503/504, 시간 초과) 잠깐 쉬었다 다시 시도하고, 그래도 안 되면 대체 모델로 시도합니다.
 // 모델 바꾸기: GEMINI_MODEL 시크릿 / 대체 모델: GEMINI_FALLBACK_MODELS (쉼표로 구분)
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash";
-const FALLBACK_MODELS = (Deno.env.get("GEMINI_FALLBACK_MODELS") ?? "gemini-flash-latest,gemini-2.5-flash")
+const FALLBACK_MODELS = (Deno.env.get("GEMINI_FALLBACK_MODELS") ?? "gemini-3.8-flash,gemini-flash-latest")
   .split(",").map((m) => m.trim()).filter((m) => m && m !== GEMINI_MODEL);
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 const TOTAL_BUDGET_MS = 75_000; // 사용자가 기다리는 최대 시간
@@ -72,13 +72,15 @@ async function callGemini(model: string, prompt: string, schema: unknown, timeou
 }
 
 async function askGemini(prompt: string, schema: unknown, startedAt = Date.now()): Promise<unknown> {
-  // [모델, 시도 전 대기 ms]: 기본 모델 3번(바로 → 1.5초 → 4초) → 대체 모델들
+  // [모델, 시도 전 대기 ms]: 기본 모델 2번 → 붐비면 다른 모델로 → 마지막에 기본 모델 한 번 더
   const attempts: [string, number][] = [
-    [GEMINI_MODEL, 0], [GEMINI_MODEL, 1500], [GEMINI_MODEL, 4000],
+    [GEMINI_MODEL, 0], [GEMINI_MODEL, 1500],
     ...FALLBACK_MODELS.map((m): [string, number] => [m, 500]),
+    [GEMINI_MODEL, 3000],
   ];
   const unavailable = new Set<string>(); // 없는 모델(404)은 다시 부르지 않음
   let last: GeminiError | null = null;
+  let busyErr: GeminiError | null = null; // 한 번이라도 붐볐으면 '붐빔'으로 안내
   for (const [model, wait] of attempts) {
     if (unavailable.has(model)) continue;
     const left = TOTAL_BUDGET_MS - (Date.now() - startedAt) - wait;
@@ -86,18 +88,19 @@ async function askGemini(prompt: string, schema: unknown, startedAt = Date.now()
     if (wait) await sleep(wait);
     const t0 = Date.now();
     try {
-      const result = await callGemini(model, prompt, schema, Math.min(40_000, left));
+      const result = await callGemini(model, prompt, schema, Math.min(30_000, left));
       console.log(`gemini ok model=${model} ${Date.now() - t0}ms`);
       return result;
     } catch (e) {
       const err = e instanceof GeminiError ? e : new GeminiError(String(e), 0, true);
       last = err;
+      if (err.busy) busyErr = err;
       console.warn(`gemini fail model=${model} status=${err.status} ${Date.now() - t0}ms: ${err.message}`);
       if (err.status === 404) { unavailable.add(model); continue; }
       if (!err.busy && err.status !== 200) throw err; // 키 오류(400/401/403) 등은 다시 해도 소용없음
     }
   }
-  throw last ?? new GeminiError("Gemini 호출 실패", 0, true);
+  throw busyErr ?? last ?? new GeminiError("Gemini 호출 실패", 0, true);
 }
 
 // 실패 이유에 맞는 안내 문구
