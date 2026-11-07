@@ -102,7 +102,12 @@ function showTodoOptions(id) {
                 });
             }
         } else if (result.isDenied) {
-            deleteTodo(id);
+            // 삭제는 되돌릴 수 없으니 한 번 더 확인
+            const ok = await Swal.fire({
+                title: '할 일을 삭제할까요?', text: `'${todo.task_content}' 할 일이 삭제돼요.`, icon: 'warning',
+                showCancelButton: true, confirmButtonText: '삭제', cancelButtonText: '취소', confirmButtonColor: '#dc2626', heightAuto: false
+            });
+            if (ok.isConfirmed) deleteTodo(id);
         }
     });
 }
@@ -110,6 +115,13 @@ function showTodoOptions(id) {
 // 날짜 도우미
 function todayString(d = new Date()) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// 받침에 맞는 조사: josa('테스트', '이', '가') → '가', josa('보고서 작성', '을', '를') → '을'
+function josa(word, withBatchim, withoutBatchim) {
+    const ch = String(word).trim().slice(-1);
+    const code = ch.charCodeAt(0) - 0xAC00;
+    if (code < 0 || code > 11171) return withBatchim + '(' + withoutBatchim + ')'; // 한글이 아니면 둘 다 표시
+    return code % 28 ? withBatchim : withoutBatchim;
 }
 function escapeTodoHtml(str) {
     return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -159,8 +171,8 @@ function renderCoach() {
     box.hidden = list.length === 0;
     box.innerHTML = list.map(t => {
         const reason = (t.postpone_count || 0) >= 2
-            ? `'${escapeTodoHtml(t.task_content)}'을(를) ${t.postpone_count}번 미뤘어요.`
-            : `'${escapeTodoHtml(t.task_content)}'이(가) ${t.overdue}일째 밀려 있어요.`;
+            ? `'${escapeTodoHtml(t.task_content)}'${josa(t.task_content, '을', '를')} ${t.postpone_count}번 미뤘어요.`
+            : `'${escapeTodoHtml(t.task_content)}'${josa(t.task_content, '이', '가')} ${t.overdue}일째 밀려 있어요.`;
         return `<div class="coach-card">
             <span class="coach-icon" aria-hidden="true">⏳</span>
             <div class="coach-text"><strong>${reason}</strong><span>부담이 커서 그럴 수 있어요. AI가 바로 시작할 수 있는 작은 단계로 나눠 드릴까요?</span></div>
@@ -188,7 +200,7 @@ async function splitTask(taskId, btn) {
         }).join('');
         Swal.fire({
             title: '작게 나눴어요',
-            html: `<p style="margin: 0 0 10px;">'${escapeTodoHtml(data.original)}'을(를) ${data.steps.length}단계로 나눠 다시 배치했어요.</p><ul style="text-align: left; display: inline-block; margin: 0;">${items}</ul>`,
+            html: `<p style="margin: 0 0 10px;">'${escapeTodoHtml(data.original)}'${josa(data.original, '을', '를')} ${data.steps.length}단계로 나눠 다시 배치했어요.</p><ul style="text-align: left; display: inline-block; margin: 0;">${items}</ul>`,
             icon: 'success', heightAuto: false
         });
         fetchTodos();
@@ -211,7 +223,9 @@ function renderGoals() {
     box.innerHTML = goals.map(g => {
         const mine = todos.filter(t => t.goal_id === g.goal_id);
         const done = mine.filter(t => t.is_completed).length;
-        const todayLeft = mine.filter(t => !t.is_completed && t.target_date && String(t.target_date).slice(0, 10) <= today).length;
+        const todayLeft = mine.filter(t => !t.is_completed && String(t.target_date || '').slice(0, 10) === today).length;
+        const lateLeft = mine.filter(t => !t.is_completed && t.target_date && String(t.target_date).slice(0, 10) < today).length;
+        const todayLabel = `오늘 ${todayLeft}개` + (lateLeft ? ` · 밀린 ${lateLeft}개` : '');
         const pct = mine.length ? Math.round(done / mine.length * 100) : 0;
         let dday = '';
         if (g.deadline) {
@@ -221,7 +235,7 @@ function renderGoals() {
         return `<div class="goal-item">
             <div>
                 <div class="goal-title">${escapeTodoHtml(g.title)}</div>
-                <div class="goal-meta">${g.deadline ? `마감 ${String(g.deadline).slice(0, 10)} · ${dday} · ` : ''}<b style="color:#4361ee">오늘 ${todayLeft}개</b> · 완료 ${done}/${mine.length}</div>
+                <div class="goal-meta">${g.deadline ? `마감 ${String(g.deadline).slice(0, 10)} · ${dday} · ` : ''}<b style="color:#4361ee">${todayLabel}</b> · 완료 ${done}/${mine.length}</div>
             </div>
             <button class="goal-delete" onclick="deleteGoal(${g.goal_id})">목표 삭제</button>
             <div class="goal-progress"><div class="progress-track"><div class="progress-bar" style="width: ${pct}%"></div></div><span>${pct}%</span></div>
@@ -255,7 +269,7 @@ function dayOf(t) { return t.target_date ? String(t.target_date).slice(0, 10) : 
 
 function todoItemHtml(t) {
     return `<li class="todo-item">
-            <input type="checkbox" ${t.is_completed ? 'checked' : ''} onclick="toggleTodo(${t.task_id}, ${t.is_completed})" style="width: 20px; height: 20px; cursor: pointer; flex-shrink: 0;">
+            <input type="checkbox" ${t.is_completed ? 'checked' : ''} onclick="toggleTodo(${t.task_id}, ${t.is_completed})" style="width: 20px; height: 20px; accent-color: #4361ee; cursor: pointer; flex-shrink: 0;">
             ${dateBadge(t.target_date)}
             ${t.postpone_count ? `<span class="postpone-badge" title="미룬 횟수">미룸 ${t.postpone_count}</span>` : ''}
             <span onclick="showTodoOptions(${t.task_id})" style="flex-grow:1; font-size: 16px; cursor: pointer; ${t.is_completed ? 'text-decoration:line-through; color:#aaa;' : 'color:#333;'}">

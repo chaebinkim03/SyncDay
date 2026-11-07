@@ -366,3 +366,7 @@
 .summary-container .sum-section { margin: 0; }
 /* 알림창·요약 창이 떠 있을 때는 챗봇 버튼을 잠시 숨김 (겹침 방지) */
 body.swal2-shown #chat-widget-container { visibility: hidden !important; }
+
+/* 홈 To-do: 5개 넘으면 '더 보기' */
+.home-todo-more { list-style: none; padding: 10px 4px 0; text-align: right; }
+.home-todo-more a { font-size: 0.85rem; font-weight: 700; color: #4361ee; text-decoration: none; }

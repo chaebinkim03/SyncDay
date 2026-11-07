@@ -87,7 +87,7 @@ function showHabitOptions(id) {
         confirmButtonText: '저장',
         denyButtonText: '삭제',
         cancelButtonText: '취소',
-        confirmButtonColor: '#2ecc71',
+        confirmButtonColor: '#4361ee',
         denyButtonColor: '#d33',
         heightAuto: false
     }).then(async (result) => {
@@ -103,8 +103,8 @@ function showHabitOptions(id) {
             await updateHabit(id, newName, newRule);
         } else if (result.isDenied) {
             Swal.fire({
-                title: '삭제',
-                text: '이 루틴을 삭제하시겠습니까?',
+                title: '루틴을 삭제할까요?',
+                text: '이 루틴과 연속 기록이 삭제돼요.',
                 showCancelButton: true,
                 confirmButtonText: '삭제',
                 cancelButtonText: '취소',
@@ -146,12 +146,12 @@ function renderHabits() {
         li.innerHTML = `
             <input type="checkbox" ${h.is_completed ? 'checked' : ''} ${due ? '' : 'disabled title="오늘은 쉬는 날이에요"'}
                 onclick="toggleHabit(${h.routine_id})"
-                style="width: 22px; height: 22px; cursor: ${due ? 'pointer' : 'not-allowed'};">
+                style="width: 22px; height: 22px; accent-color: #4361ee; cursor: ${due ? 'pointer' : 'not-allowed'};">
 
             <div style="flex-grow:1; cursor: pointer;" onclick="showHabitOptions(${h.routine_id})">
                 <div style="font-weight:bold; font-size:1.1rem; color: ${h.is_completed ? '#aaa' : '#2c3e50'}; ${h.is_completed ? 'text-decoration: line-through;' : ''}">
                     ${name}
-                    <span style="margin-left: 8px; color: #ff9f43; font-size: 0.9rem;">🔥 ${h.streak || 0}일 연속</span>
+                    ${h.streak > 0 ? `<span style="margin-left: 8px; color: #ff9f43; font-size: 0.9rem;">🔥 ${h.streak}일 연속</span>` : ''}
                 </div>
                 <div style="font-size:0.85rem; color:#7f8c8d; margin-top: 5px;">📅 주기: ${escapeRoutineHtml(h.repeat_rule || '매일')}${due ? '' : ' · 오늘은 쉬는 날'}</div>
             </div>

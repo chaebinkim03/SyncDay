@@ -1,6 +1,12 @@
 // JS/settings.js
 let currentUser = null;
 
+// 다른 화면과 같은 알림창(SweetAlert)으로 안내
+function notify(text, icon = 'warning') {
+    if (window.Swal) Swal.fire({ text, icon, confirmButtonText: '확인', confirmButtonColor: '#4361ee', heightAuto: false });
+    else alert(text);
+}
+
 // 페이지 로드 시 유저 데이터 및 닉네임 상태 초기화
 document.addEventListener('DOMContentLoaded', async () => {
     if(window.supabaseClient) {
@@ -28,12 +34,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 닉네임 저장 및 실시간 반영
 async function saveNickname() {
     const nickname = document.getElementById('nickname-input').value.trim();
-    if(!nickname) return alert('닉네임을 입력해 주세요.');
+    if(!nickname) return notify('닉네임을 입력해 주세요.');
     
     const { error } = await window.supabaseClient.from('profiles').upsert({ id: currentUser.id, nickname: nickname });
     
     if(error) { 
-        alert('닉네임을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'); 
+        notify('닉네임을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.', 'error'); 
     } else {
         const status = document.getElementById('nickname-status');
         status.style.display = 'block';
@@ -96,9 +102,9 @@ async function submitInquiry() {
     const textEl = document.getElementById('inquiry-text');
     const btn = document.getElementById('inquiry-submit');
     const text = textEl.value.trim();
-    if (!text) return alert("문의할 내용을 입력해 주세요.");
-    if (text.length > 2000) return alert("문의 내용은 2000자 이내로 적어 주세요.");
-    if (!currentUser) return alert("로그인 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
+    if (!text) return notify("문의할 내용을 입력해 주세요.");
+    if (text.length > 2000) return notify("문의 내용은 2000자 이내로 적어 주세요.");
+    if (!currentUser) return notify("로그인 정보를 불러오는 중이에요. 잠시 후 다시 시도해 주세요.");
 
     if (btn) { btn.disabled = true; btn.textContent = '접수 중...'; }
     const { error } = await window.supabaseClient.from('inquiries').insert({ content: text, email: currentUser.email });
@@ -106,9 +112,9 @@ async function submitInquiry() {
 
     if (error) {
         console.error('문의 저장 실패:', error);
-        return alert("문의를 접수하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        return notify("문의를 접수하지 못했어요. 잠시 후 다시 시도해 주세요.", 'error');
     }
-    alert(`문의가 접수됐어요.\n답변은 아래 '내 문의 내역'에서 확인할 수 있어요.`);
+    notify(`문의가 접수됐어요. 답변은 아래 '내 문의 내역'에서 확인할 수 있어요.`, 'success');
     closeModal('inquiry-modal');
     loadInquiries();
 }

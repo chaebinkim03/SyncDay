@@ -85,7 +85,7 @@ function initMiniCalendar() {
         
         eventSources: [
             {
-                googleCalendarId: 'ko.south_korea#holiday@group.v.calendar.google.com',
+                googleCalendarId: 'ko.south_korea.official#holiday@group.v.calendar.google.com', // 공식 공휴일만 (크리스마스 이브 등 기념일 제외)
                 color: '#ff9f43', 
                 textColor: '#ffffff'
             },
@@ -248,8 +248,9 @@ async function loadUrgentTodos() {
         const rank = (t) => t.target_date === today ? 0 : (t.target_date ? (t.is_completed ? 3 : 1) : 2);
         const items = (data || [])
             .filter(t => !(t.target_date && t.target_date < today && t.is_completed)) // 지난 날짜에 끝낸 일은 숨김
-            .sort((a, b) => rank(a) - rank(b))
-            .slice(0, 5);
+            .sort((a, b) => rank(a) - rank(b));
+        const moreCount = Math.max(0, items.length - 5);
+        items.splice(5);
 
         if (items.length === 0) {
             list.innerHTML = '<li class="empty-msg">오늘 할 일이 없어요. AI 챗봇에 목표를 알려 주세요.</li>';
@@ -272,6 +273,7 @@ async function loadUrgentTodos() {
             li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
             list.appendChild(li);
         });
+        if (moreCount) list.insertAdjacentHTML('beforeend', `<li class="home-todo-more"><a href="todo.html">+${moreCount}개 더 보기 ›</a></li>`);
     } catch(e) {
         console.error('긴급 투두 로딩 에러', e);
     }
@@ -301,10 +303,14 @@ async function showWeeklyDetail() {
         const rows = days.map((d, i) => {
             const [, m, dd] = d.split('-').map(Number);
             const dayTodos = todos.filter(t => String(t.target_date).slice(0, 10) === d);
+            const dayLogs = logs.filter(l => String(l.done_date).slice(0, 10) === d);
             const dueRoutines = routines.filter(r => isRoutineDue(r.repeat_rule, d) && (!r.created_at || String(r.created_at).slice(0, 10) <= d));
-            const doneRoutineIds = new Set(logs.filter(l => l.item_type === 'routine' && String(l.done_date).slice(0, 10) === d).map(l => l.item_id));
-            const total = dayTodos.length + dueRoutines.length;
-            const done = dayTodos.filter(t => t.is_completed).length + dueRoutines.filter(r => doneRoutineIds.has(r.routine_id)).length;
+            const doneRoutineIds = new Set(dayLogs.filter(l => l.item_type === 'routine').map(l => l.item_id));
+            // 밀린 할 일을 그날 끝낸 기록도 '그날 한 일'로 셈 (홈 막대와 같은 기준)
+            const dayTodoIds = new Set(dayTodos.map(t => t.task_id));
+            const extraDone = new Set(dayLogs.filter(l => l.item_type === 'todo' && !dayTodoIds.has(l.item_id)).map(l => l.item_id)).size;
+            const total = dayTodos.length + dueRoutines.length + extraDone;
+            const done = dayTodos.filter(t => t.is_completed).length + dueRoutines.filter(r => doneRoutineIds.has(r.routine_id)).length + extraDone;
             const pct = total ? Math.round(done / total * 100) : 0;
 
             let state, cls;

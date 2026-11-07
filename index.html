@@ -159,7 +159,7 @@ section.blk{padding-block:96px}
 .cday.off .n::after{content:" 휴무";font-family:var(--f-body);font-weight:700;color:var(--fg-3)}
 .cday.off .pip{display:none}
 .pip{height:5px;border-radius:3px;transition:opacity .2s}
-.pip.hi{background:var(--c-red)} .pip.mid{background:var(--c-yellow)} .pip.lo{background:var(--c-blue)}
+.pip.hi{background:var(--c-red)} .pip.mid{background:var(--c-green)} .pip.lo{background:var(--c-blue)}
 .pip.hide{opacity:.12}
 .hint{font-size:12px;color:var(--fg-3);margin-top:10px}
 .coach-msg{display:flex;gap:10px;align-items:flex-start;background:var(--t-red);border-radius:10px;padding:12px;font-size:14px}
@@ -386,24 +386,24 @@ html:not(.motion) .fl{opacity:.95}
     <div class="panel" role="tabpanel" id="p-cal" aria-labelledby="tab-cal" hidden>
       <div class="ptext">
         <h3>내 생활 패턴에 맞춘<br>캘린더 설정</h3>
-        <p>특정 중요도의 일정만 모아 보는 필터와, 스케줄 근무자를 위한 자유로운 휴무일 설정을 지원합니다.</p>
+        <p>색으로 나눈 일정 필터와, 주말이 아닌 요일에 쉬는 사람을 위한 요일별 휴무일 설정을 지원합니다.</p>
         <ul>
-          <li>중요도별 필터로 지금 집중해야 할 일정만 보기</li>
-          <li>요일이 고정되지 않은 휴무일도 날짜별로 지정</li>
+          <li>기본·중요·개인 색 필터로 지금 필요한 일정만 보기</li>
+          <li>토·일이 아닌 요일도 휴무일로 지정 (예: 수·금 휴무)</li>
           <li>휴무일에는 AI가 할 일을 배치하지 않도록 반영</li>
         </ul>
       </div>
       <div class="pvis yellow">
         <div class="vcard">
-          <h5>10월 일정 <small>날짜를 눌러 휴무일 지정</small></h5>
-          <div class="filters" id="filters" role="group" aria-label="중요도 필터">
-            <button class="fchip" data-f="all" aria-pressed="true" type="button">전체</button>
-            <button class="fchip" data-f="hi" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-red)"></span>높음</button>
-            <button class="fchip" data-f="mid" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-yellow)"></span>보통</button>
-            <button class="fchip" data-f="lo" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-blue)"></span>낮음</button>
+          <h5>10월 일정 <small>날짜를 누르면 그 요일이 휴무일로</small></h5>
+          <div class="filters" id="filters" role="group" aria-label="일정 색 필터">
+            <button class="fchip" data-f="all" aria-pressed="true" type="button">전체보기</button>
+            <button class="fchip" data-f="lo" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-blue)"></span>기본</button>
+            <button class="fchip" data-f="hi" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-red)"></span>중요</button>
+            <button class="fchip" data-f="mid" aria-pressed="false" type="button"><span class="dot" style="background:var(--c-green)"></span>개인</button>
           </div>
           <div class="cal14" id="cal14"></div>
-          <p class="hint">빗금 친 날은 휴무일입니다. 다시 누르면 해제됩니다.</p>
+          <p class="hint">빗금 친 요일은 휴무일이에요. 다시 누르면 해제되고, AI 계획에서도 그 요일은 비워 둡니다.</p>
         </div>
       </div>
     </div>
@@ -632,10 +632,11 @@ html:not(.motion) .fl{opacity:.95}
   var pips=[['mid','lo'],['hi'],['mid','hi','lo'],['lo','mid'],['hi','lo'],[],['mid'],['lo','lo'],['hi','mid'],['mid'],['hi','lo','lo'],['lo'],[],['mid','hi']];
   var off={5:1,12:1};
   pips.forEach(function(p,i){
-    c+='<button type="button" class="cday'+(off[i]?' off':'')+'" data-i="'+i+'" aria-pressed="'+(!!off[i])+'" aria-label="10월 '+(12+i)+'일 휴무 전환"><span class="n">'+(12+i)+'</span>'+p.map(function(x){return '<span class="pip '+x+'" data-k="'+x+'"></span>'}).join('')+'</button>';
+    c+='<button type="button" class="cday'+(off[i]?' off':'')+'" data-i="'+i+'" aria-pressed="'+(!!off[i])+'" aria-label="10월 '+(12+i)+'일, '+days[i%7]+'요일 휴무 전환"><span class="n">'+(12+i)+'</span>'+p.map(function(x){return '<span class="pip '+x+'" data-k="'+x+'"></span>'}).join('')+'</button>';
   });
   cal.innerHTML=c;
-  cal.addEventListener('click',function(e){var b=e.target.closest('.cday');if(!b)return;var on=b.classList.toggle('off');b.setAttribute('aria-pressed',on)});
+  // 실제 서비스처럼 요일 단위로 휴무 지정: 한 날짜를 누르면 같은 요일이 모두 바뀜
+  cal.addEventListener('click',function(e){var b=e.target.closest('.cday');if(!b)return;var w=(+b.dataset.i)%7,on=!b.classList.contains('off');[].forEach.call(cal.querySelectorAll('.cday'),function(x){if((+x.dataset.i)%7===w){x.classList.toggle('off',on);x.setAttribute('aria-pressed',on)}})});
   var fl=document.getElementById('filters');
   fl.addEventListener('click',function(e){
     var b=e.target.closest('.fchip');if(!b)return;var f=b.dataset.f;

@@ -49,7 +49,7 @@ async function callGemini(model: string, prompt: string, schema: unknown, timeou
       signal: AbortSignal.timeout(timeoutMs),
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema, temperature: 0.6 },
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema, temperature: 0.6, maxOutputTokens: 16384 },
       }),
     });
   } catch (e) {
@@ -60,11 +60,14 @@ async function callGemini(model: string, prompt: string, schema: unknown, timeou
   if (!res.ok) {
     throw new GeminiError(`Gemini 오류(${res.status}): ${data?.error?.message ?? "알 수 없음"}`, res.status, RETRYABLE.has(res.status));
   }
-  const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? "").join("") ?? "";
+  const cand = data?.candidates?.[0];
+  const text = cand?.content?.parts?.filter((p: any) => !p.thought).map((p: any) => p.text ?? "").join("") ?? "";
   try {
     return JSON.parse(text);
   } catch {
-    throw new GeminiError("Gemini 응답이 JSON 형식이 아님", 200, false);
+    // 원인을 로그에서 알 수 있게: 응답이 잘렸는지(MAX_TOKENS), 차단됐는지(SAFETY) 등
+    const why = `finish=${cand?.finishReason ?? "없음"} block=${data?.promptFeedback?.blockReason ?? "없음"} len=${text.length}`;
+    throw new GeminiError(`Gemini 응답이 JSON 형식이 아님 (${why})`, 200, false);
   }
 }
 

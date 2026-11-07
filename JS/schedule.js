@@ -7,6 +7,22 @@ function isHolidayEvent(ev) {
     return (ev.source && ev.source.id === 'holidays') || (!!ev.url && ev.url.indexOf('google.com') !== -1);
 }
 
+function escapeScheduleHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// 일정 입력창 검사: 제목 필수, 종료가 시작보다 늦어야 함. 문제가 있으면 창 안에 안내하고 저장하지 않음
+function readScheduleForm(prefix, colorName) {
+    const v = (id) => (document.getElementById(`${prefix}-${id}`)?.value || '').trim();
+    const title = v('title'), sDate = v('start-date'), sTime = v('start-time'), eDate = v('end-date'), eTime = v('end-time');
+    const color = document.querySelector(`input[name="${colorName}"]:checked`)?.value || '#4361ee';
+    if (!title) { Swal.showValidationMessage('일정 내용을 입력해 주세요.'); return false; }
+    if (title.length > 100) { Swal.showValidationMessage('일정 내용은 100자 이내로 적어 주세요.'); return false; }
+    if (!sDate || !sTime || !eDate || !eTime) { Swal.showValidationMessage('시작과 종료 날짜·시간을 모두 정해 주세요.'); return false; }
+    if (`${eDate}T${eTime}` <= `${sDate}T${sTime}`) { Swal.showValidationMessage('종료 시간은 시작 시간보다 늦어야 해요.'); return false; }
+    return { schedule_title: title, start_time: `${sDate}T${sTime}:00`, end_time: `${eDate}T${eTime}:00`, color };
+}
+
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -18,6 +34,7 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
+        buttonText: { today: '오늘', month: '월', week: '주' },
         // 표 높이를 내용에 맞춤 → 일정이 늘어나도 카드 밖으로 삐져나오지 않음
         height: 'auto',
         views: { timeGridWeek: { height: 680 } }, // 주간 시간표는 고정 높이 + 안에서 스크롤
@@ -75,7 +92,7 @@ function initCalendar() {
         eventSources: [
             {
                 id: 'holidays',
-                googleCalendarId: 'ko.south_korea#holiday@group.v.calendar.google.com',
+                googleCalendarId: 'ko.south_korea.official#holiday@group.v.calendar.google.com', // 공식 공휴일만 (크리스마스 이브 등 기념일 제외)
                 color: '#ff9f43', 
                 // textColor: '#ffffff',
                 className: 'holiday-event-wrapper' 
@@ -124,7 +141,7 @@ function initCalendar() {
             Swal.fire({
                 title: `새 일정 추가`, 
                 html: `
-                    <input id="swal-input-title" class="swal2-input" placeholder="일정 내용을 입력해 주세요" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
+                    <input id="swal-title" class="swal2-input" maxlength="100" placeholder="일정 내용을 입력해 주세요" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
                     
                     <div style="text-align: left; width: 85%; margin: 0 auto 10px auto;">
                         <label style="font-size: 12px; color: #666; font-weight: bold; margin-left: 5px;">시작 일시</label>
@@ -157,29 +174,17 @@ function initCalendar() {
                         </div>
                     </div>
                 `,
-                showCancelButton: true, confirmButtonText: '저장', cancelButtonText: '취소'
+                showCancelButton: true, confirmButtonText: '저장', cancelButtonText: '취소', heightAuto: false,
+                preConfirm: () => readScheduleForm('swal', 'event-color')
             }).then(async (result) => {
-                if (result.isConfirmed) {
-                    const title = document.getElementById('swal-input-title').value;
-                    const sDate = document.getElementById('swal-start-date').value;
-                    const sTime = document.getElementById('swal-start-time').value;
-                    const eDate = document.getElementById('swal-end-date').value;
-                    const eTime = document.getElementById('swal-end-time').value;
-                    const checkedColorRadio = document.querySelector('.event-color-radio:checked');
-                    const color = checkedColorRadio ? checkedColorRadio.value : '#4361ee';
-                    
-                    if(title && sDate && eDate) {
-                        const newEvent = { 
-                            schedule_title: title, 
-                            start_time: `${sDate}T${sTime}:00`, 
-                            end_time: `${eDate}T${eTime}:00`,
-                            color: color
-                        };
-                        const { error } = await window.supabaseClient.from('recommended_schedules').insert([newEvent]);
-                        if (!error) { 
-                            calendar.refetchEvents(); 
-                        }
+                if (result.isConfirmed && result.value) {
+                    const { error } = await window.supabaseClient.from('recommended_schedules').insert([result.value]);
+                    if (error) {
+                        console.error('일정 저장 실패:', error);
+                        Swal.fire({ title: '저장하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
+                        return;
                     }
+                    calendar.refetchEvents();
                 }
             });
         },
@@ -200,12 +205,13 @@ function initCalendar() {
                 endDate = info.event.endStr.split('T')[0];
                 endTime = info.event.endStr.includes('T') ? info.event.endStr.split('T')[1].substring(0, 5) : '10:00';
             }
-            const currentColor = info.event.backgroundColor;
+            const knownColors = ['#4361ee', '#e63946', '#2ecc71'];
+            const currentColor = knownColors.includes(info.event.backgroundColor) ? info.event.backgroundColor : '#4361ee';
 
             Swal.fire({
                 title: '일정 상세 설정',
                 html: `
-                    <input id="edit-schedule-title" class="swal2-input" value="${info.event.title}" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
+                    <input id="edit-title" class="swal2-input" maxlength="100" value="${escapeScheduleHtml(info.event.title)}" style="width: 85%; margin-bottom: 15px; box-sizing: border-box;">
                     
                     <div style="text-align: left; width: 85%; margin: 0 auto 10px auto;">
                         <label style="font-size: 12px; color: #666; font-weight: bold; margin-left: 5px;">시작 일시</label>
@@ -224,7 +230,7 @@ function initCalendar() {
                     </div>
 
                     <div style="text-align: center; width: 100%; margin: 0 auto;">
-                        <label style="font-size: 14px; font-weight: bold; color: #545454; display: block; margin-bottom: 15px;">중요도 변경</label>
+                        <label style="font-size: 14px; font-weight: bold; color: #545454; display: block; margin-bottom: 15px;">색상 선택</label>
                         <div style="display: flex; justify-content: center; gap: 15px; font-size: 14px;">
                             <label style="cursor: pointer;"><input type="radio" name="edit-color" value="#4361ee" ${currentColor === '#4361ee' ? 'checked' : ''}> 🔵 기본</label>
                             <label style="cursor: pointer;"><input type="radio" name="edit-color" value="#e63946" ${currentColor === '#e63946' ? 'checked' : ''}> 🔴 중요</label>
@@ -236,30 +242,32 @@ function initCalendar() {
                 showCancelButton: true,
                 confirmButtonText: '수정 완료',
                 denyButtonText: '삭제',
-                cancelButtonText: '취소'
+                cancelButtonText: '취소',
+                heightAuto: false,
+                preConfirm: () => readScheduleForm('edit', 'edit-color')
             }).then(async (result) => {
-                if (result.isConfirmed) {
-                    const newTitle = document.getElementById('edit-schedule-title').value;
-                    const sDate = document.getElementById('edit-start-date').value;
-                    const sTime = document.getElementById('edit-start-time').value;
-                    const eDate = document.getElementById('edit-end-date').value;
-                    const eTime = document.getElementById('edit-end-time').value;
-                    const newColor = document.querySelector('input[name="edit-color"]:checked').value;
-                    
-                    if (newTitle && sDate && eDate) {
-                        const updateData = { 
-                            schedule_title: newTitle,
-                            start_time: `${sDate}T${sTime}:00`,
-                            end_time: `${eDate}T${eTime}:00`,
-                            color: newColor
-                        };
-                        await window.supabaseClient.from('recommended_schedules')
-                            .update(updateData)
-                            .eq('schedule_id', info.event.id);
-                        calendar.refetchEvents(); 
+                if (result.isConfirmed && result.value) {
+                    const { error } = await window.supabaseClient.from('recommended_schedules')
+                        .update(result.value).eq('schedule_id', info.event.id);
+                    if (error) {
+                        console.error('일정 수정 실패:', error);
+                        Swal.fire({ title: '수정하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
+                        return;
                     }
+                    calendar.refetchEvents();
                 } else if (result.isDenied) {
-                    await window.supabaseClient.from('recommended_schedules').delete().eq('schedule_id', info.event.id);
+                    // 삭제는 되돌릴 수 없으니 한 번 더 확인
+                    const ok = await Swal.fire({
+                        title: '일정을 삭제할까요?', text: `'${info.event.title}' 일정이 삭제돼요.`, icon: 'warning',
+                        showCancelButton: true, confirmButtonText: '삭제', cancelButtonText: '취소', confirmButtonColor: '#dc2626', heightAuto: false
+                    });
+                    if (!ok.isConfirmed) return;
+                    const { error } = await window.supabaseClient.from('recommended_schedules').delete().eq('schedule_id', info.event.id);
+                    if (error) {
+                        console.error('일정 삭제 실패:', error);
+                        Swal.fire({ title: '삭제하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
+                        return;
+                    }
                     calendar.refetchEvents();
                 }
             });
