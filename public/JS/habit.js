@@ -151,7 +151,7 @@ function renderHabits() {
             <div style="flex-grow:1; cursor: pointer;" onclick="showHabitOptions(${h.routine_id})">
                 <div style="font-weight:bold; font-size:1.1rem; color: ${h.is_completed ? '#aaa' : '#2c3e50'}; ${h.is_completed ? 'text-decoration: line-through;' : ''}">
                     ${name}
-                    ${h.streak > 0 ? `<span style="margin-left: 8px; color: #ff9f43; font-size: 0.9rem;">🔥 ${h.streak}일 연속</span>` : ''}
+                    ${h.streak > 0 ? `<span style="display: inline-block; margin-left: 8px; color: #ff9f43; font-size: 0.9rem;">🔥 ${h.streak}일 연속</span>` : ''}
                 </div>
                 <div style="font-size:0.85rem; color:#7f8c8d; margin-top: 5px;">📅 주기: ${escapeRoutineHtml(h.repeat_rule || '매일')}${due ? '' : ' · 오늘은 쉬는 날'}</div>
             </div>

@@ -422,26 +422,13 @@ function refreshPlannerViews() {
 }
 
 // ===== 계획 만드는 동안: 단계 표시 / 끝나면: 알림 =====
-const PLAN_STAGES = [
-    [0, '목표를 분석하고 있어요'],
-    [4, '마감일까지 쓸 수 있는 날을 계산하고 있어요'],
-    [9, '날짜별 할 일로 나누고 있어요'],
-    [20, 'AI 서버가 붐벼서 다시 시도하고 있어요'],
-    [45, '거의 다 됐어요. 조금만 기다려 주세요'],
-];
-function loadingHtml(sec) {
-    const stage = PLAN_STAGES.filter(st => sec >= st[0]).pop()[1];
-    const pct = Math.min(95, Math.round(100 * (1 - Math.exp(-sec / 14))));
-    return `<div class="stage"><span class="dots"><i></i><i></i><i></i></span>${stage}</div>
-        <div class="bar"><span style="width:${pct}%"></span></div>
-        <small>${sec}초 · 창을 닫거나 다른 화면으로 가도 괜찮아요. 완성되면 알려 드릴게요.</small>`;
+function loadingHtml() {
+    return `<div class="stage"><span class="dots"><i></i><i></i><i></i></span>완성되면 알려 드릴게요</div>`;
 }
-function startLoading(id, startedAt) {
+function startLoading(id) {
     const el = document.getElementById(id);
-    if (!el) return null;
-    const tick = () => { const n = document.getElementById(id); if (n) n.innerHTML = loadingHtml(Math.floor((Date.now() - startedAt) / 1000)); };
-    tick();
-    return setInterval(tick, 1000);
+    if (el) el.innerHTML = loadingHtml();
+    return null; // 문구가 바뀌지 않으므로 타이머 없음 (clearInterval(null)은 안전)
 }
 
 function showChatToast(html, { error = false, link = null } = {}) {
