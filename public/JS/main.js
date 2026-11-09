@@ -253,7 +253,7 @@ async function loadUrgentTodos() {
         items.splice(5);
 
         if (items.length === 0) {
-            list.innerHTML = '<li class="empty-msg">오늘 할 일이 없어요. AI 챗봇에 목표를 알려 주세요.</li>';
+            list.innerHTML = '<li class="empty-msg">오늘 할 일이 없어요.</li>';
             return;
         }
         list.innerHTML = '';

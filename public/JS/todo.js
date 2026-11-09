@@ -300,10 +300,10 @@ function renderTodos() {
     const leftToday = todayItems.filter(t => !t.is_completed).length;
     let html = `<li class="todo-section-title">오늘 할 일 <span>${leftToday ? `${leftToday}개 남음` : ''}</span></li>`;
     if (todayItems.length === 0) {
-        html += `<li class="todo-empty">오늘 할 일이 없어요. 푹 쉬어도 괜찮아요 🙂</li>`;
+        html += `<li class="todo-empty">오늘 할 일이 없어요</li>`;
     } else {
         html += todayItems.map(todoItemHtml).join('');
-        if (leftToday === 0) html += `<li class="todo-empty">오늘 할 일을 모두 끝냈어요! 🎉</li>`;
+        if (leftToday === 0) html += `<li class="todo-empty">오늘 할 일을 모두 끝냈어요!</li>`;
     }
 
     // 이후 할 일: 목표별로 접어서 한 줄로
