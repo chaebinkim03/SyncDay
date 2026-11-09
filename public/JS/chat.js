@@ -71,8 +71,9 @@ const chatWidgetCode = `
     .chat-options label { font-size: 0.75rem; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
     .chat-options input[type="date"], .chat-options select { padding: 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.75rem; font-family: inherit; background: white; min-width: 0; }
     .chat-options input[type="date"] { flex: 1; }
-    .chat-options input[type="number"] { width: 52px; padding: 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.75rem; font-family: inherit; }
-    .chat-options label[hidden] { display: none; }
+    .chat-options input[type="number"] { flex: none; width: 56px; padding: 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.75rem; font-family: inherit; }
+    .chat-footer .pin-btn { flex: none; width: 30px; height: 30px; padding: 0; border-radius: 8px; background: white; border: 1px solid #e0e0e0; color: #94a3b8; font-size: 1rem; line-height: 1; }
+    .chat-footer .pin-btn.on { color: #f59e0b; border-color: #fcd34d; background: #fffbeb; }
     .chat-footer button:disabled { background: #a5b4fc; cursor: wait; }
     .plan-list { margin: 6px 0 0; padding-left: 16px; }
     .plan-list li { margin: 2px 0; }
@@ -132,14 +133,8 @@ const chatWidgetCode = `
             <input type="text" id="chat-input" placeholder="목표 입력 (예: 토익 800점 달성)" maxlength="200">
             <div class="chat-options">
                 <label>마감일 <input type="date" id="chat-deadline"></label>
-                <select id="chat-minutes" aria-label="하루 투자 시간">
-                    <option value="30">하루 30분</option>
-                    <option value="60" selected>하루 1시간</option>
-                    <option value="90">하루 1시간 30분</option>
-                    <option value="120">하루 2시간</option>
-                    <option value="custom">기타</option>
-                </select>
-                <label id="chat-minutes-custom-wrap" hidden><input type="number" id="chat-minutes-custom" min="10" max="480" step="10" placeholder="45" inputmode="numeric" aria-label="하루 투자 시간(분)">분</label>
+                <label>하루 <input type="number" id="chat-minutes" min="10" max="480" step="10" placeholder="60" inputmode="numeric" aria-label="하루 투자 시간(분)">분</label>
+                <button type="button" id="chat-minutes-pin" class="pin-btn" aria-pressed="false" title="이 시간을 고정해요">☆</button>
             </div>
             <button id="send-btn">계획 만들기</button>
         </div>
@@ -373,20 +368,39 @@ closeBtn.addEventListener('click', (e) => {
 //     Gemini API 키는 서버(Supabase Secrets)에만 있고, 브라우저에는 없습니다.
 // ==========================================
 const deadlineInput = document.getElementById('chat-deadline');
-const minutesSelect = document.getElementById('chat-minutes');
-const minutesCustom = document.getElementById('chat-minutes-custom');
-const minutesCustomWrap = document.getElementById('chat-minutes-custom-wrap');
-minutesSelect.addEventListener('change', () => {
-    const custom = minutesSelect.value === 'custom';
-    minutesCustomWrap.hidden = !custom;
-    if (custom) minutesCustom.focus();
-});
-// 하루 투자 시간(분): 직접 입력이면 10~480분인지 확인, 아니면 null
+const minutesInput = document.getElementById('chat-minutes');
+const minutesPinBtn = document.getElementById('chat-minutes-pin');
+// 하루 투자 시간 고정(즐겨찾기): 계정별로 이 브라우저에 저장
+function minutesPinKey() { return 'chatMinutesPin:' + (typeof restUserId !== 'undefined' && restUserId ? restUserId : 'guest'); }
+function getMinutesPin() { try { const v = Number(localStorage.getItem(minutesPinKey())); return v >= 10 && v <= 480 ? v : null; } catch (e) { return null; } }
+function setMinutesPin(v) { try { v ? localStorage.setItem(minutesPinKey(), String(v)) : localStorage.removeItem(minutesPinKey()); } catch (e) {} }
+// 하루 투자 시간(분): 10~480분이면 숫자, 아니면 null
 function readMinutes() {
-    if (minutesSelect.value !== 'custom') return Number(minutesSelect.value);
-    const m = Math.round(Number(minutesCustom.value));
-    return Number.isFinite(m) && m >= 10 && m <= 480 ? m : null;
+    const m = Math.round(Number(minutesInput.value));
+    return minutesInput.value !== '' && Number.isFinite(m) && m >= 10 && m <= 480 ? m : null;
 }
+function updateMinutesPinBtn() {
+    const pin = getMinutesPin();
+    const on = pin !== null && readMinutes() === pin;
+    minutesPinBtn.classList.toggle('on', on);
+    minutesPinBtn.textContent = on ? '★' : '☆';
+    minutesPinBtn.setAttribute('aria-pressed', String(on));
+    minutesPinBtn.title = on ? '고정 해제' : '이 시간을 고정해요';
+}
+minutesInput.addEventListener('input', updateMinutesPinBtn);
+minutesPinBtn.addEventListener('click', () => {
+    const m = readMinutes();
+    if (minutesPinBtn.classList.contains('on')) { setMinutesPin(null); updateMinutesPinBtn(); return; }
+    if (!m) { addAiMessage('고정할 시간을 10분~480분 사이로 먼저 입력해 주세요.', true); minutesInput.focus(); return; }
+    setMinutesPin(m);
+    updateMinutesPinBtn();
+});
+// 고정한 시간이 있으면 처음부터 채워 둠
+(typeof ensureRestSetting === 'function' ? ensureRestSetting() : Promise.resolve()).finally(() => {
+    const pin = getMinutesPin();
+    if (pin && minutesInput.value === '') minutesInput.value = pin;
+    updateMinutesPinBtn();
+});
 function formatMinutes(m) {
     const h = Math.floor(m / 60), r = m % 60;
     return h ? `${h}시간${r ? ` ${r}분` : ''}` : `${r}분`;
@@ -486,7 +500,7 @@ async function sendMessage(retryReq) {
     const { goal, deadline, minutesPerDay } = req;
     if (!goal || isPlanning) return;
     if (!deadline) { addAiMessage('마감일을 선택해 주세요.', true); return; }
-    if (!minutesPerDay) { addAiMessage('하루 투자 시간은 10분~480분(8시간) 사이로 입력해 주세요.', true); minutesCustom.focus(); return; }
+    if (!minutesPerDay) { addAiMessage('하루에 쓸 시간을 10분~480분(8시간) 사이로 입력해 주세요.', true); minutesInput.focus(); return; }
 
     isPlanning = true;
     sendBtn.disabled = true;
