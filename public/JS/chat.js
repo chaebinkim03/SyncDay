@@ -71,6 +71,8 @@ const chatWidgetCode = `
     .chat-options label { font-size: 0.75rem; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
     .chat-options input[type="date"], .chat-options select { padding: 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.75rem; font-family: inherit; background: white; min-width: 0; }
     .chat-options input[type="date"] { flex: 1; }
+    .chat-options input[type="number"] { width: 52px; padding: 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.75rem; font-family: inherit; }
+    .chat-options label[hidden] { display: none; }
     .chat-footer button:disabled { background: #a5b4fc; cursor: wait; }
     .plan-list { margin: 6px 0 0; padding-left: 16px; }
     .plan-list li { margin: 2px 0; }
@@ -135,7 +137,9 @@ const chatWidgetCode = `
                     <option value="60" selected>하루 1시간</option>
                     <option value="90">하루 1시간 30분</option>
                     <option value="120">하루 2시간</option>
+                    <option value="custom">기타</option>
                 </select>
+                <label id="chat-minutes-custom-wrap" hidden><input type="number" id="chat-minutes-custom" min="10" max="480" step="10" placeholder="45" inputmode="numeric" aria-label="하루 투자 시간(분)">분</label>
             </div>
             <button id="send-btn">계획 만들기</button>
         </div>
@@ -370,6 +374,23 @@ closeBtn.addEventListener('click', (e) => {
 // ==========================================
 const deadlineInput = document.getElementById('chat-deadline');
 const minutesSelect = document.getElementById('chat-minutes');
+const minutesCustom = document.getElementById('chat-minutes-custom');
+const minutesCustomWrap = document.getElementById('chat-minutes-custom-wrap');
+minutesSelect.addEventListener('change', () => {
+    const custom = minutesSelect.value === 'custom';
+    minutesCustomWrap.hidden = !custom;
+    if (custom) minutesCustom.focus();
+});
+// 하루 투자 시간(분): 직접 입력이면 10~480분인지 확인, 아니면 null
+function readMinutes() {
+    if (minutesSelect.value !== 'custom') return Number(minutesSelect.value);
+    const m = Math.round(Number(minutesCustom.value));
+    return Number.isFinite(m) && m >= 10 && m <= 480 ? m : null;
+}
+function formatMinutes(m) {
+    const h = Math.floor(m / 60), r = m % 60;
+    return h ? `${h}시간${r ? ` ${r}분` : ''}` : `${r}분`;
+}
 const WEEK_KO = ['일', '월', '화', '수', '목', '금', '토'];
 let isPlanning = false;
 
@@ -460,11 +481,12 @@ async function sendMessage(retryReq) {
     const req = retryReq || {
         goal: chatInput.value.trim(),
         deadline: deadlineInput.value,
-        minutesPerDay: Number(minutesSelect.value),
+        minutesPerDay: readMinutes(),
     };
     const { goal, deadline, minutesPerDay } = req;
     if (!goal || isPlanning) return;
     if (!deadline) { addAiMessage('마감일을 선택해 주세요.', true); return; }
+    if (!minutesPerDay) { addAiMessage('하루 투자 시간은 10분~480분(8시간) 사이로 입력해 주세요.', true); minutesCustom.focus(); return; }
 
     isPlanning = true;
     sendBtn.disabled = true;
@@ -472,7 +494,7 @@ async function sendMessage(retryReq) {
     const restDays = getRestDays();
     lastRequest = { goal, deadline, minutesPerDay };
     if (!retryReq) {
-        chatMessages.innerHTML += `<div class="msg user-msg">${escapeHtml(goal)}<br><small>마감 ${formatDay(deadline)} · 하루 ${minutesPerDay}분 · ${restDaysLabel(restDays)}</small></div>`;
+        chatMessages.innerHTML += `<div class="msg user-msg">${escapeHtml(goal)}<br><small>마감 ${formatDay(deadline)} · 하루 ${formatMinutes(minutesPerDay)} · ${restDaysLabel(restDays)}</small></div>`;
         chatInput.value = '';
     }
     const startedAt = Date.now();
