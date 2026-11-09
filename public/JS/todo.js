@@ -216,7 +216,7 @@ function renderGoals() {
     const box = document.getElementById('goal-list');
     if (!box) return;
     if (goals.length === 0) {
-        box.innerHTML = '<p class="empty-msg" style="padding: 16px 0;">아직 목표가 없어요. 오른쪽 아래 AI 챗봇에 목표와 마감일을 알려 주세요.</p>';
+        box.innerHTML = '<p class="empty-msg" style="padding: 16px 0;">아직 목표가 없어요. AI 챗봇에 목표와 마감일을 알려 주세요.</p>';
         return;
     }
     const today = todayString();
