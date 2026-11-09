@@ -397,12 +397,9 @@ function restDaysLabel(days) {
     return '휴무 ' + order.filter(d => days.includes(d)).map(d => WEEK_KO[d]).join('·');
 }
 
-// 마감일 기본값: 오늘부터 30일 뒤
+// 마감일 기본값: 오늘 (오늘 이전 날짜는 고를 수 없음)
 deadlineInput.min = localDateStr();
-if (!deadlineInput.value) {
-    const d = new Date(); d.setDate(d.getDate() + 30);
-    deadlineInput.value = localDateStr(d);
-}
+if (!deadlineInput.value) deadlineInput.value = localDateStr();
 
 function addAiMessage(html, isError = false) {
     const style = isError ? ' style="color: #e63946; font-weight: bold;"' : '';
