@@ -69,18 +69,17 @@ function initCalendar() {
         },
         
         dayCellDidMount: function(info) {
-            const day = info.date.getDay(); 
+            const kind = restKind(info.date.getDay());
             const dayNum = info.el.querySelector('.fc-daygrid-day-number');
-            if (dayNum) {
-                const restSetting = getRestSetting();
-                dayNum.style.color = '#333333'; 
-                if (restSetting.type === 'default') {
-                    if (day === 0) dayNum.style.color = '#e63946'; 
-                    else if (day === 6) dayNum.style.color = '#4361ee'; 
-                } else if (restSetting.type === 'weekly') {
-                    if (restSetting.days.includes(day)) dayNum.style.color = '#e63946'; 
-                }
-            }
+            if (dayNum) dayNum.style.color = REST_COLORS[kind] || '#333333';
+        },
+
+        // 주간 보기의 날짜 머리글(예: 11/9 (월))도 휴무일 색으로
+        dayHeaderDidMount: function(info) {
+            if (!info.view.type.startsWith('timeGrid')) return;
+            const kind = restKind(info.date.getDay());
+            const a = info.el.querySelector('.fc-col-header-cell-cushion') || info.el;
+            if (REST_COLORS[kind]) a.style.color = REST_COLORS[kind];
         },
 
         dayCellContent: function(info) {
@@ -275,6 +274,14 @@ function initCalendar() {
     });
 
     calendar.render();
+}
+
+// 휴무일 표시: 'rest' = 쉬는 날(빨강), 'sat' = 기본 설정의 토요일(파랑, 쉬는 날), null = 평일
+const REST_COLORS = { rest: '#e63946', sat: '#4361ee' };
+function restKind(day) {
+    const s = getRestSetting();
+    if (s.type === 'weekly') return s.days.includes(day) ? 'rest' : null;
+    return day === 0 ? 'rest' : day === 6 ? 'sat' : null;
 }
 
 document.addEventListener('DOMContentLoaded', () => { ensureRestSetting().finally(initCalendar); }); // 내 휴무일 설정을 불러온 뒤 캘린더 표시
