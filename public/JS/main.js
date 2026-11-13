@@ -169,8 +169,11 @@ async function updateRoutineProgress() {
         return;
     }
     routineList.innerHTML = '';
+    // 홈에는 5개까지만, 나머지는 '더 보기'로 루틴 화면에서 (투두와 같은 방식)
+    const HOME_ROUTINE_MAX = 5;
+    const moreRoutines = Math.max(0, homeRoutines.length - HOME_ROUTINE_MAX);
     // To-do와 같은 체크박스 모양 (항목 전체를 눌러 체크/해제)
-    homeRoutines.forEach(item => {
+    homeRoutines.slice(0, HOME_ROUTINE_MAX).forEach(item => {
         const done = !!item.is_completed;
         routineList.innerHTML += `
             <li class="home-todo${done ? ' done' : ''}" role="checkbox" aria-checked="${done}" tabindex="0"
@@ -180,6 +183,7 @@ async function updateRoutineProgress() {
                 <span class="home-todo-text">${escapeRoutineHtml(routineTitle(item))}</span>
             </li>`;
     });
+    if (moreRoutines) routineList.insertAdjacentHTML('beforeend', `<li class="home-todo-more"><a href="habit.html">+${moreRoutines}개 더 보기 ›</a></li>`);
 }
 
 // 루틴 완료 상태 변경 (홈에서 클릭) → 연속 일수·마지막 완료일까지 루틴 페이지와 같은 방식으로 저장
