@@ -123,7 +123,7 @@ const chatWidgetCode = `
 <div id="chat-widget-container" style="visibility: hidden;">
     <div id="chat-window" class="dir-up-left">
         <div class="chat-header" id="chat-header-handle">
-            <h3>SyncDay AI 에이전트</h3>
+            <h3>Sync Day AI 에이전트</h3>
             <button class="close-btn" id="close-chat">&times;</button>
         </div>
         <div class="chat-body" id="chat-messages">
