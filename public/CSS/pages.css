@@ -614,3 +614,46 @@ body.swal2-shown #chat-widget-container { visibility: hidden !important; }
     .fc-timegrid .fc-timegrid-event { border-left-width: 3px !important; margin: 1px; }
     .fc-timegrid .fc-timegrid-event .fc-event-main { padding: 3px 2px 3px 3px; }
 }
+
+/* =========================================================
+   팝업(알림·입력 창) 글씨 키우기 (11/13)
+   - 코드 안에 직접 적힌 작은 글씨(12~15px)도 한 단계씩 키움
+   ========================================================= */
+body .swal2-popup { width: min(580px, 94vw); padding: 1.6em 1.5em 1.5em; border-radius: 16px; }
+body .swal2-title { font-size: 1.75rem !important; color: #1e293b; }
+body .swal2-html-container { font-size: 1.15rem !important; line-height: 1.6; color: #334155; }
+body .swal2-html-container label { font-size: 16.5px !important; color: #334155 !important; }
+body .swal2-html-container [style*="font-size: 12px"], body .swal2-html-container [style*="font-size:12px"] { font-size: 15px !important; }
+body .swal2-html-container [style*="font-size: 13px"], body .swal2-html-container [style*="font-size:13px"] { font-size: 15.5px !important; }
+body .swal2-html-container [style*="font-size: 14px"], body .swal2-html-container [style*="font-size:14px"] { font-size: 16.5px !important; }
+body .swal2-html-container [style*="font-size: 15px"], body .swal2-html-container [style*="font-size:15px"] { font-size: 17px !important; }
+body .swal2-input, body .swal2-textarea, body .swal2-select { font-size: 1.15rem !important; border-radius: 10px; }
+body .swal2-input { height: 3em; }
+body .swal2-html-container input[type="date"], body .swal2-html-container input[type="time"] { height: 2.9em; }
+body .swal2-html-container input[type="radio"], body .swal2-html-container input[type="checkbox"] { width: 20px; height: 20px; accent-color: #4361ee; }
+body .swal2-actions { gap: 6px; }
+body .swal2-actions .swal2-styled { font-size: 1.1rem !important; padding: 0.7em 1.7em; border-radius: 10px; font-weight: 700; }
+body .swal2-popup .swal2-styled.swal2-confirm { background-color: #4361ee; }
+body .swal2-popup .swal2-styled.swal2-cancel { background-color: #64748b; }
+/* 홈: 날짜 요약·이번 주 기록 팝업 */
+.sum-head { font-size: 16px; } .sum-pct { font-size: 21px; }
+.sum-title { font-size: 16.5px; } .sum-row { font-size: 16.5px; } .sum-time { font-size: 14.5px; } .sum-tag { font-size: 13px; }
+.sum-box { width: 21px; height: 21px; }
+.wk-sub { font-size: 16px; } .wk-row { font-size: 16px; } .wk-count, .wk-state { font-size: 14.5px; } .wk-note { font-size: 14px; color: #64748b; }
+/* 설정: 공지·문의 창 */
+body .modal-title { font-size: 1.5rem; }
+body .modal-date { font-size: 1rem; color: #64748b; }
+body .modal-body, body .modal-content textarea { font-size: 1.15rem; }
+body .detail-label { font-size: 15.5px; }
+body .detail-text { font-size: 17px; }
+body .detail-wait { font-size: 16px; }
+body .inquiry-list-title { font-size: 16.5px; }
+body .inquiry-q, body .inquiry-answer { font-size: 16.5px; }
+body .inquiry-status, body .inquiry-date, body .notice-item .notice-date { font-size: 14px; }
+body .notice-empty { font-size: 16px; }
+@media (max-width: 480px) {
+    body .swal2-title { font-size: 1.45rem !important; }
+    body .swal2-html-container { font-size: 1.05rem !important; }
+    body .swal2-actions .swal2-styled { padding: 0.65em 1.3em; }
+}
+body .swal2-html-container button:not(.swal2-styled) { font-size: 15.5px !important; padding: 8px 14px !important; border-radius: 8px !important; }

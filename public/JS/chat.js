@@ -27,7 +27,7 @@ const chatWidgetCode = `
         pointer-events: none; 
     }
     #chat-window {
-        display: none; width: 340px; height: 520px; 
+        display: none; width: 390px; height: 580px; 
         background: white; border: 2px solid #4361ee; 
         border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         overflow: hidden; flex-direction: column; position: absolute;
@@ -112,6 +112,30 @@ const chatWidgetCode = `
         #chat-window.dir-down-left, #chat-window.dir-down-right { top: 72px; }
         #chat-window[class]::before, #chat-window[class]::after { display: none !important; }
         .chat-toast { top: calc(68px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; max-width: none; }
+    }
+
+    /* 글씨 키우기 (11/13) */
+    .chat-header h3 { font-size: 1.2rem; }
+    .close-btn { font-size: 1.8rem; }
+    .msg { font-size: 1.05rem; line-height: 1.6; padding: 12px 15px; }
+    .msg small { font-size: 0.9rem; }
+    .plan-phase { font-size: 0.85rem; padding: 2px 8px; }
+    .chat-footer input { font-size: 1rem; padding: 12px; }
+    .chat-footer button { font-size: 1.05rem; padding: 11px 15px; }
+    .chat-options label { font-size: 0.9rem; color: #475569; }
+    .chat-options input[type="date"], .chat-options select, .chat-options input[type="number"] { font-size: 0.9rem; padding: 8px; }
+    .chat-options input[type="number"] { width: 62px; }
+    .chat-footer .pin-btn { width: 36px; height: 36px; font-size: 1.15rem; }
+    .retry-btn { font-size: 0.95rem !important; padding: 8px 14px !important; }
+    .chat-toast { font-size: 1rem; }
+    @media (max-width: 768px) {
+        #chat-window { height: min(580px, calc(100dvh - 220px)); }
+        .msg { font-size: 1rem; }
+        .chat-options { gap: 5px; }
+        .chat-options label { font-size: 0.85rem; gap: 3px; }
+        .chat-options input[type="date"] { padding: 7px 4px; font-size: 0.85rem; }
+        .chat-options input[type="number"] { width: 50px; padding: 7px 4px; }
+        .chat-footer .pin-btn { width: 34px; height: 34px; }
     }
 
     @keyframes chatFadeIn {
@@ -199,10 +223,10 @@ function placeChatWindow() {
     w.position = 'fixed'; w.left = '16px'; w.right = '16px'; w.width = 'auto';
     if (spaceAbove >= spaceBelow) {
         w.top = 'auto'; w.bottom = (window.innerHeight - r.top + gap) + 'px';
-        w.height = Math.max(240, Math.min(520, spaceAbove)) + 'px';
+        w.height = Math.max(240, Math.min(580, spaceAbove)) + 'px';
     } else {
         w.bottom = 'auto'; w.top = (r.bottom + gap) + 'px';
-        w.height = Math.max(240, Math.min(520, spaceBelow)) + 'px';
+        w.height = Math.max(240, Math.min(580, spaceBelow)) + 'px';
     }
 }
 
