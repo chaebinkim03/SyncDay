@@ -213,10 +213,10 @@ async function loadWeeklyRecord() {
     box.innerHTML = days.map((d, i) => {
         const [, m, dd] = d.split('-').map(Number);
         const future = d > today;
-        const h = Math.round((counts[d] / max) * 44);
+        const h = Math.round((counts[d] / max) * 70);
         const cls = 'weekly-day' + (d === today ? ' today' : '') + (future ? ' future' : '');
         return `<div class="${cls}" title="${m}/${dd} 완료 ${counts[d]}개">
-            <span class="weekly-count">${future ? '' : (counts[d] || '')}</span>
+            <span class="weekly-count">${future ? '' : counts[d]}</span>
             <div class="weekly-bar" style="height:${future ? 4 : Math.max(h, 4)}px"></div>
             <span class="weekly-label">${week[i]}</span></div>`;
     }).join('');
@@ -225,6 +225,11 @@ async function loadWeeklyRecord() {
     if (rangeEl) rangeEl.textContent = `${fmt(days[0])} ~ ${fmt(days[6])}`;
     const totalEl = document.getElementById('weekly-total');
     if (totalEl) totalEl.textContent = `총 ${total}개`;
+    // 이번 주 기록이 없으면 빈 막대 대신 안내 한 줄
+    let hint = document.getElementById('weekly-hint');
+    if (!hint) { hint = document.createElement('p'); hint.id = 'weekly-hint'; hint.className = 'weekly-hint'; box.after(hint); }
+    hint.textContent = total ? '' : '이번 주에 완료한 일이 아직 없어요. 하나씩 체크해 보세요!';
+    hint.hidden = !!total;
 }
 
 // 오늘 날짜 문자열 (YYYY-MM-DD, 사용자 기기 기준)

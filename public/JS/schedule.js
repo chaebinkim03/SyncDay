@@ -37,7 +37,18 @@ function initCalendar() {
         buttonText: { today: '오늘', month: '월', week: '주' },
         // 표 높이를 내용에 맞춤 → 일정이 늘어나도 카드 밖으로 삐져나오지 않음
         height: 'auto',
-        views: { timeGridWeek: { height: 680 } }, // 주간 시간표는 고정 높이 + 안에서 스크롤
+        views: {
+            timeGridWeek: {
+                height: 680,                       // 주간 시간표는 고정 높이 + 안에서 스크롤
+                scrollTime: '08:00:00',            // 처음 열면 오전 8시부터 보이게
+                nowIndicator: true,                // 지금 시각에 가로선
+                slotLabelFormat: { hour: 'numeric', meridiem: 'short' },
+                dayHeaderContent: function(arg) {  // 머리글: 요일 + 날짜 숫자(오늘은 동그라미)
+                    const d = arg.date;
+                    return { html: `<span class="wk-dow">${'일월화수목금토'[d.getDay()]}</span><span class="wk-num${arg.isToday ? ' today' : ''}">${d.getDate()}</span>` };
+                }
+            }
+        },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
         googleCalendarApiKey: 'AIzaSyCdgnHAhrQP9XuUFzMwbl0E-2ezWXZYQkw', 
 
@@ -45,8 +56,18 @@ function initCalendar() {
         
         // ⭐️ 추가된 부분: 주간 뷰(timeGridWeek) 상단의 '종일(all-day)' 칸을 아예 숨깁니다.
         allDaySlot: false, 
+        // 주간 보기는 고정 높이(안에서 스크롤) + 오전 8시부터 보이게, 월간 보기는 내용 높이
+        datesSet: function(arg) {
+            const week = arg.view.type.startsWith('timeGrid');
+            const want = week ? 680 : 'auto';
+            if (calendar && calendar.getOption('height') !== want) {
+                calendar.setOption('height', want);
+                if (week) setTimeout(() => calendar.scrollToTime('08:00:00'), 0);
+            }
+        },
 
         eventDidMount: function(info) {
+            info.el.style.setProperty('--ev', info.event.backgroundColor || '#4361ee'); // 주간 보기 파스텔 색에 사용
             const currentMonth = calendar.getDate().getMonth(); 
             const eventMonth = info.event.start.getMonth(); 
             if (currentMonth !== eventMonth) {
@@ -56,6 +77,12 @@ function initCalendar() {
 
       // 공휴일(주황색)만 얇은 선으로 뼈대 생성
         eventContent: function(arg) {
+            // 주간 보기: 제목 + 시간 (예: 9:00 - 10:30)
+            if (arg.view.type.startsWith('timeGrid') && !isHolidayEvent(arg.event)) {
+                const t = (d) => d ? `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}` : '';
+                const esc = (x) => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                return { html: `<div class="wk-ev"><b>${esc(arg.event.title)}</b><span>${t(arg.event.start)} - ${t(arg.event.end)}</span></div>` };
+            }
             if (isHolidayEvent(arg.event)) {
                 return {
                     html: `
@@ -125,7 +152,7 @@ function initCalendar() {
             }
         ],
 
-        dateClick: function(info) {
+        dateClick: window.__scheduleDateClick = function(info) {
             const dateStr = info.dateStr.split('T')[0]; 
             
             let defaultStart = "09:00";
@@ -285,6 +312,14 @@ function restKind(day) {
 }
 
 document.addEventListener('DOMContentLoaded', () => { ensureRestSetting().finally(initCalendar); }); // 내 휴무일 설정을 불러온 뒤 캘린더 표시
+
+// '+ 일정 추가' 버튼: 오늘 날짜로 새 일정 창 열기 (날짜 칸을 누른 것과 같음)
+window.openAddSchedule = function() {
+    if (!window.__scheduleDateClick || typeof calendar === 'undefined' || !calendar) return;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    window.__scheduleDateClick({ dateStr: today, view: { type: 'dayGridMonth' } });
+};
 
 window.filterEvents = function(color, element) {
     currentFilterColor = color;

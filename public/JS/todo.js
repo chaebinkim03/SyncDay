@@ -269,13 +269,13 @@ function dayOf(t) { return t.target_date ? String(t.target_date).slice(0, 10) : 
 
 function todoItemHtml(t) {
     return `<li class="todo-item">
-            <input type="checkbox" ${t.is_completed ? 'checked' : ''} onclick="toggleTodo(${t.task_id}, ${t.is_completed})" style="width: 20px; height: 20px; accent-color: #4361ee; cursor: pointer; flex-shrink: 0;">
+            <input type="checkbox" ${t.is_completed ? 'checked' : ''} onclick="toggleTodo(${t.task_id}, ${t.is_completed})" style="width: 24px; height: 24px; accent-color: #4361ee; cursor: pointer; flex-shrink: 0;">
             ${dateBadge(t.target_date)}
             ${t.postpone_count ? `<span class="postpone-badge" title="미룬 횟수">미룸 ${t.postpone_count}</span>` : ''}
-            <span onclick="showTodoOptions(${t.task_id})" style="flex-grow:1; font-size: 16px; cursor: pointer; ${t.is_completed ? 'text-decoration:line-through; color:#aaa;' : 'color:#333;'}">
+            <span onclick="showTodoOptions(${t.task_id})" style="flex-grow:1; font-size: 17px; cursor: pointer; ${t.is_completed ? 'text-decoration:line-through; color:#aaa;' : 'color:#333;'}">
                 ${escapeTodoHtml(t.task_content)}
             </span>
-            <button onclick="showTodoOptions(${t.task_id})" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #888;" title="관리">⚙️</button>
+            <button onclick="showTodoOptions(${t.task_id})" class="item-edit-btn" title="수정·미루기·삭제"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>관리</button>
         </li>`;
 }
 

@@ -57,3 +57,55 @@ html.swal2-height-auto:root, html body.app-layout.swal2-height-auto { height: 10
     .menu-item { flex: 1; justify-content: center; margin: 0; padding: 12px 2px; font-size: 0.85rem; border-radius: 10px; }
     .menu-item.active { box-shadow: none; }
 }
+
+/* =========================================================
+   보기 쉬운 화면 (11/13): 큰 글씨·아이콘 메뉴·상단 날짜
+   ========================================================= */
+#header { gap: 28px; }
+.header-info { display: flex; align-items: center; gap: 16px; font-size: 1rem; color: #334155; font-weight: 600; }
+.header-date { background: #eef2ff; color: #3730a3; border-radius: 999px; padding: 6px 14px; }
+.header-hello { color: #475569; }
+
+#sidebar-left h3 { font-size: 0.95rem; color: #475569; }
+.menu-item { font-size: 1.1rem; padding: 14px 16px; gap: 12px; color: #334155; margin-bottom: 6px; }
+.mi-icon { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.user-email { font-size: 0.95rem; color: #334155; font-weight: 600; }
+.logout-btn { font-size: 0.95rem; padding: 11px; }
+
+@media (max-width: 1100px) { .header-hello { display: none; } }
+@media (max-width: 768px) {
+    #header { gap: 10px; }
+    .header-info { margin-right: auto; font-size: 0.85rem; }
+    .header-date { padding: 4px 10px; }
+    .menu-item { flex-direction: column; gap: 3px; padding: 8px 2px; font-size: 0.8rem; }
+    .mi-icon { width: 22px; height: 22px; }
+    #main-content { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 380px) { .header-date { display: none; } }
+
+/* 프로젝터·밝은 화면에서도 구역이 보이게 (11/13): 배경을 한 톤 어둡게, 경계선 진하게 */
+body, html, #main-content { background-color: #e9eef5; }
+#header { border-bottom: 1px solid #cbd5e1; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06); }
+#sidebar-left { border-right: 1px solid #cbd5e1; }
+.sidebar-profile { border-top-color: #cbd5e1; }
+@media (max-width: 768px) { #sidebar-left { border-top: 1px solid #cbd5e1; } }
+body, html, #main-content { background-color: #dde3ec; }
+
+/* 메뉴: 이모지 아이콘 + 더 큰 글씨 (11/13) */
+.mi-emoji { font-size: 1.3rem; line-height: 1; width: 26px; text-align: center; flex: none; }
+.menu-item { font-size: 1.2rem; padding: 15px 16px; }
+.header-logo { font-size: 1.7rem; }
+@media (max-width: 768px) {
+    .menu-item { font-size: 0.85rem; }
+    .mi-emoji { font-size: 1.25rem; }
+    .header-logo { font-size: 1.35rem; }
+}
+/* 선 아이콘 (11/13) */
+.mi-icon { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 768px) { .mi-icon { width: 24px; height: 24px; } }
+
+/* 로고: 아이콘 + 글자 (11/13) */
+.header-logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 34px; height: 34px; border-radius: 9px; flex: none; }
+.menu-item { border-radius: 10px; }
+@media (max-width: 768px) { .logo-mark { width: 28px; height: 28px; } }

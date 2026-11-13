@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>설정 · SyncDay</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -65,15 +65,15 @@
 <meta name="theme-color" content="#4361ee">
 </head>
 <body class="app-layout">
-    <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
+    <header id="header"><h1 class="header-logo"><img src="../favicon.svg" class="logo-mark" alt="">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
     <div id="main-container">
         <nav id="sidebar-left">
             <h3>메뉴</h3>
-            <a href="main.html" class="menu-item">홈</a>
-            <a href="schedule.html" class="menu-item">캘린더</a>
-            <a href="todo.html" class="menu-item">투두</a>
-            <a href="habit.html" class="menu-item">루틴</a>
-            <a href="settings.html" class="menu-item active">설정</a>
+            <a href="main.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg><span>홈</span></a>
+            <a href="schedule.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>캘린더</span></a>
+            <a href="todo.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m8 12 3 3 5-6"/></svg><span>투두</span></a>
+            <a href="habit.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 3.5v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20.5v-5h5"/></svg><span>루틴</span></a>
+            <a href="settings.html" class="menu-item active"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>설정</span></a>
             <div class="sidebar-profile">
                 <div id="user-email-display" class="user-email">로딩중...</div>
                 <button onclick="logout()" class="logout-btn">로그아웃</button>
@@ -82,10 +82,11 @@
         
         <main id="main-content">
             <div class="dashboard-widget">
-                <h2 style="margin-bottom: 30px;">환경 설정</h2>
+
+                <h2 class="settings-page-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>환경 설정</h2>
 
                 <div class="settings-section">
-                    <h3 class="settings-title">회원 정보 및 닉네임 설정</h3>
+                    <h3 class="settings-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>회원 정보 및 닉네임 설정</h3>
                     <p id="user-info-text" style="margin-bottom: 12px; color: #64748b; font-size: 14px;">로그인된 계정: 불러오는 중...</p>
                     
                     <div style="display: flex; gap: 10px; align-items: center;">
@@ -96,12 +97,12 @@
                 </div>
 
                 <div class="settings-section">
-                    <h3 class="settings-title">공지사항</h3>
+                    <h3 class="settings-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h3l6 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M17 8.5a5 5 0 0 1 0 7"/></svg>공지사항</h3>
                     <div id="notice-list"><p class="notice-empty">불러오는 중...</p></div>
                 </div>
 
                 <div class="settings-section">
-                    <h3 class="settings-title">고객 센터 및 문의하기</h3>
+                    <h3 class="settings-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20.5l1.3-4.6A8 8 0 1 1 21 12z"/></svg>고객 센터 및 문의하기</h3>
                     <p style="font-size: 14px; color: #64748b; margin-bottom: 12px;">서비스 이용 중 불편한 점이나 추가되었으면 하는 기능이 있으시면 언제든 알려 주세요.</p>
                     <button onclick="openInquiryModal()" class="btn-primary">1:1 문의글 작성하기</button>
                     <div id="inquiry-list" class="inquiry-list"></div>

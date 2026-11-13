@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>캘린더 · SyncDay</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     
@@ -26,17 +26,17 @@
 </head>
 <body class="app-layout">
     <header id="header">
-        <h1 class="header-logo">SyncDay</h1>
+        <h1 class="header-logo"><img src="../favicon.svg" class="logo-mark" alt="">SyncDay</h1>
     <button class="header-logout" onclick="logout()">로그아웃</button></header>
 
     <div id="main-container">
         <nav id="sidebar-left">
             <h3>메뉴</h3>
-            <a href="main.html" class="menu-item">홈</a>
-            <a href="schedule.html" class="menu-item active">캘린더</a>
-            <a href="todo.html" class="menu-item">투두</a>
-            <a href="habit.html" class="menu-item">루틴</a>
-            <a href="settings.html" class="menu-item">설정</a>
+            <a href="main.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg><span>홈</span></a>
+            <a href="schedule.html" class="menu-item active"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>캘린더</span></a>
+            <a href="todo.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m8 12 3 3 5-6"/></svg><span>투두</span></a>
+            <a href="habit.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 3.5v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20.5v-5h5"/></svg><span>루틴</span></a>
+            <a href="settings.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>설정</span></a>
 
             <div class="sidebar-profile">
                 <div id="user-email-display" class="user-email">로그인 정보 로딩중...</div>
@@ -48,14 +48,14 @@
             <div class="dashboard-widget schedule-widget" style="min-height: calc(100vh - 150px); display: flex; flex-direction: column; margin-bottom: 0; padding: 25px; width: 100%; box-sizing: border-box;">
                     
                 <div class="schedule-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
-                    <h3 style="margin: 0; font-size: 1.25rem;">전체 일정 관리</h3>
+                    <div class="schedule-title-row"><h3 style="margin: 0; font-size: 1.25rem;"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>전체 일정 관리</h3><button type="button" class="add-schedule-btn" onclick="openAddSchedule()">＋ 일정 추가</button></div>
                         
                     <div class="schedule-filters" style="display: flex; gap: 8px;">
                         <button class="filter-btn active-filter" onclick="filterEvents('all', this)" style="padding: 5px 12px; border-radius: 20px; border: 2px solid #4361ee; color: #4361ee; background: white; cursor: pointer; font-weight: bold; transition: all 0.2s;">전체보기</button>
                         <button class="filter-btn" onclick="filterEvents('#4361ee', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🔵 기본</button>
                         <button class="filter-btn" onclick="filterEvents('#e63946', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🔴 중요</button>
                         <button class="filter-btn" onclick="filterEvents('#2ecc71', this)" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; transition: all 0.2s;">🟢 개인</button>
-                        <button class="filter-btn" onclick="openRestDaySettings()" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; font-weight: bold; margin-left: 10px;">⚙️ 휴무일 설정</button>
+                        <button class="filter-btn" onclick="openRestDaySettings()" style="padding: 5px 12px; border-radius: 20px; border: 1px solid #ccc; color: #333; background: white; cursor: pointer; font-weight: bold; margin-left: 10px;"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>휴무일 설정</button>
                     </div>
 
                 </div> <div id="calendar" style="width: 100%;"></div>

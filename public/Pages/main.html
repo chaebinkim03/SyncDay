@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SyncDay</title>
+    <title>홈 · SyncDay</title>
     <link rel="stylesheet" href="../CSS/common.css">
     <link rel="stylesheet" href="../CSS/pages.css">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -16,15 +16,15 @@
 <meta name="theme-color" content="#4361ee">
 </head>
 <body class="app-layout">
-    <header id="header"><h1 class="header-logo">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
+    <header id="header"><h1 class="header-logo"><img src="../favicon.svg" class="logo-mark" alt="">SyncDay</h1><button class="header-logout" onclick="logout()">로그아웃</button></header>
     <div id="main-container">
         <nav id="sidebar-left">
             <h3>메뉴</h3>
-            <a href="main.html" class="menu-item active">홈</a>
-            <a href="schedule.html" class="menu-item">캘린더</a>
-            <a href="todo.html" class="menu-item">투두</a>
-            <a href="habit.html" class="menu-item">루틴</a>
-            <a href="settings.html" class="menu-item">설정</a>
+            <a href="main.html" class="menu-item active"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/></svg><span>홈</span></a>
+            <a href="schedule.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>캘린더</span></a>
+            <a href="todo.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m8 12 3 3 5-6"/></svg><span>투두</span></a>
+            <a href="habit.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 3.5v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20.5v-5h5"/></svg><span>루틴</span></a>
+            <a href="settings.html" class="menu-item"><svg class="mi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>설정</span></a>
             <div class="sidebar-profile">
                 <div id="user-email-display" class="user-email">로딩중...</div>
                 <button onclick="logout()" class="logout-btn">로그아웃</button>
@@ -33,7 +33,7 @@
         <main id="main-content">
             <div class="half-widget-container" style="height: auto; margin-bottom: 20px;">
                 <div class="dashboard-widget half-widget" style="margin-bottom: 0;">
-                    <h3>달성도</h3>
+                    <h3 class="card-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/></svg>오늘의 달성도</h3>
                     <div class="progress-section" style="margin-top: 15px;">
                         <div class="progress-label"><span>오늘 달성률</span><span id="main-progress-text">0%</span></div>
                         <div class="progress-track"><div class="progress-bar" id="main-progress-bar"></div></div>
@@ -45,18 +45,18 @@
                     </div>
                 </div>
                 <div class="dashboard-widget half-widget" style="margin-bottom: 0;">
-                    <h3>루틴</h3>
+                    <h3 class="card-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5"/><path d="M20 3.5v5h-5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5"/><path d="M4 20.5v-5h5"/></svg>오늘의 루틴 <a href="habit.html" class="card-more">전체 보기 ›</a></h3>
                     <ul id="main-routine-list" class="item-list"><li class="empty-msg">불러오는 중...</li></ul>
                 </div>
             </div>
 
             <div class="half-widget-container">
                 <div class="dashboard-widget half-widget">
-                    <h3>캘린더</h3>
+                    <h3 class="card-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>이번 달 일정 <a href="schedule.html" class="card-more">크게 보기 ›</a></h3>
                     <div id="mini-calendar"></div>
                 </div>
                 <div class="dashboard-widget half-widget">
-                    <h3>투두</h3>
+                    <h3 class="card-title"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m8 12 3 3 5-6"/></svg>오늘 할 일 <a href="todo.html" class="card-more">전체 보기 ›</a></h3>
                     <ul id="urgent-todo-list" class="item-list"><li class="empty-msg">불러오는 중...</li></ul>
                 </div>
             </div>

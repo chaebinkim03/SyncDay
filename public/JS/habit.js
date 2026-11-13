@@ -146,17 +146,17 @@ function renderHabits() {
         li.innerHTML = `
             <input type="checkbox" ${h.is_completed ? 'checked' : ''} ${due ? '' : 'disabled title="오늘은 쉬는 날이에요"'}
                 onclick="toggleHabit(${h.routine_id})"
-                style="width: 22px; height: 22px; accent-color: #4361ee; cursor: ${due ? 'pointer' : 'not-allowed'};">
+                style="width: 24px; height: 24px; flex-shrink: 0; accent-color: #4361ee; cursor: ${due ? 'pointer' : 'not-allowed'};">
 
             <div style="flex-grow:1; cursor: pointer;" onclick="showHabitOptions(${h.routine_id})">
                 <div style="font-weight:bold; font-size:1.1rem; color: ${h.is_completed ? '#aaa' : '#2c3e50'}; ${h.is_completed ? 'text-decoration: line-through;' : ''}">
                     ${name}
                     ${h.streak > 0 ? `<span style="display: inline-block; margin-left: 8px; color: #ff9f43; font-size: 0.9rem;">🔥 ${h.streak}일 연속</span>` : ''}
                 </div>
-                <div style="font-size:0.85rem; color:#7f8c8d; margin-top: 5px;">📅 주기: ${escapeRoutineHtml(h.repeat_rule || '매일')}${due ? '' : ' · 오늘은 쉬는 날'}</div>
+                <div style="font-size:0.85rem; color:#7f8c8d; margin-top: 5px;">주기: ${escapeRoutineHtml(h.repeat_rule || '매일')}${due ? '' : ' · 오늘은 쉬는 날'}</div>
             </div>
 
-            <button onclick="showHabitOptions(${h.routine_id})" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 5px;">⚙️</button>
+            <button onclick="showHabitOptions(${h.routine_id})" class="item-edit-btn" title="수정·삭제"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>관리</button>
         `;
         list.appendChild(li);
     });

@@ -370,3 +370,247 @@ body.swal2-shown #chat-widget-container { visibility: hidden !important; }
 /* 홈 To-do: 5개 넘으면 '더 보기' */
 .home-todo-more { list-style: none; padding: 10px 4px 0; text-align: right; }
 .home-todo-more a { font-size: 0.85rem; font-weight: 700; color: #4361ee; text-decoration: none; }
+
+/* =========================================================
+   보기 쉬운 화면 (11/13): 글씨·버튼 키우기, 진한 글자색, 안내 문구
+   ========================================================= */
+/* 화면 맨 위 제목 + 한 줄 설명 */
+.page-intro { margin: 0 0 20px 4px; }
+.page-intro h2 { margin: 0 0 6px; font-size: 1.6rem; font-weight: 800; color: #1e293b; }
+.page-intro p { margin: 0; font-size: 1.05rem; color: #475569; }
+
+/* 홈 환영 배너 */
+.welcome-banner { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; padding: 26px 30px; border-radius: 16px; color: #fff; background: linear-gradient(120deg, #4361ee 0%, #5a67d8 55%, #7c3aed 100%); box-shadow: 0 8px 24px rgba(67, 97, 238, 0.25); }
+.welcome-date { margin: 0 0 6px; font-size: 1.05rem; font-weight: 600; opacity: .9; }
+.welcome-banner h2 { margin: 0 0 8px; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; }
+.welcome-sub { margin: 0; font-size: 1.05rem; opacity: .92; }
+.welcome-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.wa-btn { display: inline-flex; align-items: center; gap: 6px; padding: 13px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.14); color: #fff; font-size: 1.05rem; font-weight: 700; text-decoration: none; cursor: pointer; font-family: inherit; transition: background .15s; }
+.wa-btn:hover { background: rgba(255,255,255,.26); }
+.wa-btn.primary { background: #fff; color: #3730a3; border-color: #fff; }
+.wa-btn.primary:hover { background: #eef2ff; }
+
+/* 카드 제목: 크게 + 오른쪽 '전체 보기' */
+.dashboard-widget h3 { font-size: 1.25rem; }
+.card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.card-more { font-size: 0.95rem; font-weight: 700; color: #4361ee; text-decoration: none; white-space: nowrap; padding: 4px 8px; border-radius: 8px; }
+.card-more:hover { background: #eef2ff; }
+
+/* 홈 */
+.half-widget-container { height: 480px; }
+.progress-label { font-size: 1.1rem; }
+.progress-track { height: 16px; }
+.progress-count { font-size: 0.95rem; color: #475569; }
+.weekly-head { font-size: 1rem; color: #334155; }
+.weekly-head small { font-size: 0.85rem; color: #64748b; }
+.weekly-more { font-size: 0.9rem; }
+.weekly-bars { height: 110px; }
+.weekly-count { font-size: 0.9rem; }
+.weekly-label { font-size: 0.95rem; color: #475569; }
+.weekly-day.future .weekly-label { color: #94a3b8; }
+.home-todo { font-size: 17px; padding: 13px 4px; color: #1e293b; }
+.home-todo-box { width: 24px; height: 24px; }
+.home-todo-late { font-size: 13px; }
+.home-todo-more a { font-size: 1rem; }
+.empty-msg { color: #475569; font-size: 1.05rem; }
+.fc .fc-daygrid-day-number { font-size: 0.95rem; }
+.fc .fc-col-header-cell-cushion { font-size: 0.95rem; color: #334155; }
+.fc .fc-button { font-size: 0.95rem !important; }
+.fc .fc-toolbar-title { font-size: 1.25rem !important; }
+
+/* 투두·루틴: 항목 '관리' 버튼 (톱니바퀴 대신 글자) */
+.item-edit-btn { flex: none; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.item-edit-btn:hover { background: #e2e8f0; }
+.todo-section-title { font-size: 1.15rem; }
+.todo-section-title span { font-size: 0.95rem; }
+.todo-empty { font-size: 1.05rem; color: #475569; }
+.todo-group-title { font-size: 1.05rem; }
+.todo-group-count, .todo-group-next { font-size: 0.95rem; color: #475569; }
+.goal-title { font-size: 1.1rem; }
+.goal-meta { font-size: 0.95rem; color: #475569; }
+.goal-delete { font-size: 0.95rem; padding: 8px 14px; }
+.coach-text strong { font-size: 1.1rem; }
+.coach-text span { font-size: 1rem; }
+.coach-btn { font-size: 1rem; padding: 12px 18px; }
+#todo-input, #routine-input { font-size: 17px !important; padding: 14px !important; }
+.todo-form button, .routine-form button { font-size: 17px !important; padding: 14px 26px !important; }
+.routine-freq label { font-size: 16px !important; }
+.routine-freq input[type="radio"] { width: 18px; height: 18px; accent-color: #4361ee; }
+
+/* 캘린더 필터 버튼 */
+.schedule-filters .filter-btn { font-size: 0.95rem; padding: 7px 14px !important; }
+
+/* 설정 */
+.settings-title { font-size: 1.2rem; }
+.settings-input { font-size: 1rem; padding: 12px; }
+.btn-primary, .btn-secondary { font-size: 1rem; padding: 12px 22px; }
+.notice-item { font-size: 1.05rem; }
+
+@media (max-width: 768px) {
+    .page-intro { margin-bottom: 14px; }
+    .page-intro h2 { font-size: 1.35rem; }
+    .page-intro p { font-size: 0.95rem; }
+    .welcome-banner { padding: 20px; gap: 16px; }
+    .welcome-banner h2 { font-size: 1.35rem; }
+    .welcome-sub { font-size: 0.95rem; }
+    .welcome-actions { width: 100%; }
+    .wa-btn { flex: 1 1 auto; justify-content: center; padding: 12px 10px; font-size: 0.95rem; }
+    .wa-btn.primary { flex-basis: 100%; }
+    .item-edit-btn { padding: 7px 10px; font-size: 0.9rem; }
+    .todo-form button, .routine-form button { padding: 14px 18px !important; }
+}
+.weekly-hint { margin: 10px 0 0; font-size: 0.95rem; color: #475569; background: #f8fafc; border-radius: 10px; padding: 10px 12px; text-align: center; }
+.weekly-hint[hidden] { display: none; }
+/* 캘린더: 눈에 띄는 '+ 일정 추가' 버튼, 일정 글씨 키우기 */
+.schedule-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.add-schedule-btn { background: #4361ee; color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2); }
+.add-schedule-btn:hover { background: #3651d4; }
+#calendar .fc-daygrid-event, #calendar .fc-timegrid-event { font-size: 0.9rem; }
+@media (max-width: 768px) {
+    #calendar .fc-daygrid-event, #calendar .fc-timegrid-event { font-size: 0.75rem; }
+    .weekly-bars { height: 96px; }
+}
+
+/* 프로젝터·밝은 화면에서도 구역이 보이게 (11/13) */
+.dashboard-widget { border: 1px solid #cbd5e1; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); }
+.dashboard-widget h3 { padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
+.half-widget > h3 { flex: none; }
+.home-todo { border-bottom-color: #e2e8f0; }
+.progress-track, .goal-progress .progress-track { background-color: #d5dde8; }
+.weekly-bar { background: #a5b4fc; }
+.weekly-day.future .weekly-bar { background: #e2e8f0; }
+.goal-item { border-color: #cbd5e1; }
+.todo-item { border: 1px solid #d5dde8; box-shadow: none; }
+#routine-list li { border-color: #d5dde8 !important; }
+.todo-group details { border-color: #cbd5e1; }
+.settings-section { border-bottom-color: #cbd5e1; }
+.notice-item { background: #f1f5f9; border: 1px solid #e2e8f0; }
+.fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid { border-color: #cbd5e1 !important; }
+.fc .fc-col-header-cell { background: #f1f5f9; }
+.weekly-hint { background: #f1f5f9; border: 1px solid #e2e8f0; }
+#todo-input, #routine-input, .settings-input { border-color: #b8c2d0 !important; }
+.dashboard-widget { border: 1.5px solid #a3b0c2; box-shadow: 0 3px 10px rgba(15, 23, 42, 0.10); }
+.home-todo-box { border-color: #8a96a8; }
+.home-todo { border-bottom-color: #d5dde8; }
+.todo-item, #routine-list li { border-color: #b8c2d0 !important; }
+.goal-item { border-color: #b8c2d0; }
+.progress-track, .goal-progress .progress-track { background-color: #cdd5e1; }
+.weekly-bar { background: #8b9cf7; }
+.fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid { border-color: #b8c2d0 !important; }
+#todo-list input[type="checkbox"], #routine-list input[type="checkbox"] { outline: 1px solid #8a96a8; outline-offset: -1px; border-radius: 3px; }
+
+/* 글씨 한 단계 더 키우기 (11/13) */
+.dashboard-widget h3 { font-size: 1.35rem; }
+.settings-page-title { margin: 0 0 28px; font-size: 1.6rem; }
+.home-todo { font-size: 18px; }
+.progress-label { font-size: 1.2rem; }
+.progress-count, .weekly-head { font-size: 1.05rem; }
+.weekly-label, .weekly-count { font-size: 1rem; }
+.card-more { font-size: 1.05rem; }
+.empty-msg, .todo-empty, .weekly-hint { font-size: 1.1rem; }
+#todo-list .todo-item span[onclick] { font-size: 18px !important; }
+#routine-list li > div > div:first-child { font-size: 1.25rem !important; }
+#routine-list li > div > div:last-child { font-size: 1rem !important; color: #475569 !important; }
+.todo-section-title { font-size: 1.25rem; }
+.goal-title { font-size: 1.2rem; }
+.goal-meta { font-size: 1rem; }
+.coach-text strong { font-size: 1.15rem; }
+.coach-text span { font-size: 1.05rem; }
+.item-edit-btn { font-size: 1rem; }
+#todo-input, #routine-input { font-size: 18px !important; }
+.todo-form button, .routine-form button { font-size: 18px !important; }
+.routine-freq label { font-size: 17px !important; }
+.schedule-filters .filter-btn { font-size: 1rem; }
+.add-schedule-btn { font-size: 1.05rem; }
+.fc .fc-daygrid-day-number, .fc .fc-col-header-cell-cushion { font-size: 1.05rem; }
+.fc .fc-toolbar-title { font-size: 1.35rem !important; }
+#calendar .fc-daygrid-event, #calendar .fc-timegrid-event { font-size: 0.95rem; }
+.settings-title { font-size: 1.3rem; }
+.settings-section p, .notice-item { font-size: 1.05rem !important; }
+@media (max-width: 768px) {
+    .dashboard-widget h3 { font-size: 1.2rem; }
+    .home-todo, #todo-list .todo-item span[onclick] { font-size: 16.5px !important; }
+    #routine-list li > div > div:first-child { font-size: 1.1rem !important; }
+    .card-more { font-size: 0.95rem; }
+    .fc .fc-daygrid-day-number, .fc .fc-col-header-cell-cushion { font-size: 0.85rem; }
+    #calendar .fc-daygrid-event, #calendar .fc-timegrid-event { font-size: 0.75rem; }
+    .fc .fc-toolbar-title { font-size: 1.1rem !important; }
+}
+.weekly-hint { word-break: keep-all; }
+.schedule-title-row h3 { border-bottom: none; padding-bottom: 0; }
+/* 선 아이콘 (11/13) */
+.ui-icon { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.18em; margin-right: 8px; }
+.btn-icon { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.15em; margin-right: 5px; }
+.dashboard-widget h3:not(.card-title), .settings-title, .settings-page-title { display: flex; align-items: center; }
+.card-title > .ui-icon { margin-right: 8px; }
+.card-title { justify-content: flex-start; }
+.card-title .card-more { margin-left: auto; }
+.item-edit-btn { display: inline-flex; align-items: center; }
+.card-title > .ui-icon { margin-right: 0; }
+
+/* =========================================================
+   디자인 통일 (11/13): 색 하나·둥글기 하나·버튼 높이 하나
+   ========================================================= */
+:root { --brand: #4361ee; --brand-dark: #3651d4; --brand-soft: #eef2ff; --radius: 10px; }
+/* 주요 버튼: 모두 같은 파랑·같은 둥글기 */
+.todo-form button, .routine-form button, .btn-primary, .add-schedule-btn {
+    background: var(--brand) !important; border-radius: var(--radius) !important; border: none !important;
+    min-height: 48px; box-shadow: 0 2px 6px rgba(67, 97, 238, 0.25) !important; transition: background .15s;
+}
+.todo-form button:hover, .routine-form button:hover, .btn-primary:hover, .add-schedule-btn:hover { background: var(--brand-dark) !important; }
+/* 입력칸: 같은 높이·둥글기, 누르면 파란 테두리 */
+#todo-input, #routine-input, .settings-input { border-radius: var(--radius) !important; min-height: 48px; }
+#todo-input:focus, #routine-input:focus, .settings-input:focus { outline: none; border-color: var(--brand) !important; box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15); }
+/* 보조 버튼(관리·필터): 흰 바탕 + 회색 테두리로 통일 */
+.item-edit-btn, .schedule-filters .filter-btn { border-radius: var(--radius) !important; }
+.schedule-filters .filter-btn { border: 1.5px solid #cbd5e1 !important; background: #fff !important; color: #334155 !important; font-weight: 700 !important; }
+.schedule-filters .filter-btn.active-filter { border-color: var(--brand) !important; background: var(--brand-soft) !important; color: var(--brand) !important; }
+/* 캘린더 버튼: 둥글기 통일, '오늘' 버튼이 꺼진 것처럼 흐려 보이지 않게 */
+.fc .fc-button { border-radius: var(--radius) !important; }
+.fc .fc-button-primary:disabled { opacity: 1 !important; background: #fff !important; color: var(--brand) !important; border: 1.5px solid var(--brand) !important; }
+.fc .fc-button-group > .fc-button { border-radius: 0 !important; }
+.fc .fc-button-group > .fc-button:first-child { border-radius: var(--radius) 0 0 var(--radius) !important; }
+.fc .fc-button-group > .fc-button:last-child { border-radius: 0 var(--radius) var(--radius) 0 !important; }
+.fc .fc-button-primary.fc-button-active { background: var(--brand-dark) !important; box-shadow: inset 0 2px 4px rgba(0,0,0,.15) !important; }
+/* 카드 둥글기 */
+.dashboard-widget { border-radius: 14px; }
+
+/* ===== 캘린더 주간 보기 다듬기 (11/13) ===== */
+/* 머리글: 요일(작게) + 날짜 숫자(크게), 오늘은 파란 동그라미 */
+.fc-timegrid .fc-col-header-cell { background: #fff !important; }
+.fc-timegrid .fc-col-header-cell-cushion { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 10px !important; text-decoration: none; }
+.wk-dow { font-size: 0.9rem; font-weight: 600; opacity: .85; }
+.wk-num { font-size: 1.35rem; font-weight: 800; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; }
+.wk-num.today { background: #4361ee; color: #fff; }
+/* 시간 칸: 30분 점선 없애고 칸을 넉넉하게 */
+.fc-timegrid .fc-timegrid-slot { height: 2.4em; }
+.fc-timegrid .fc-timegrid-slot-minor { border-top-style: none !important; }
+.fc-timegrid .fc-timegrid-slot-label-cushion { font-size: 0.9rem; color: #64748b; font-weight: 600; padding-right: 10px; }
+.fc-timegrid .fc-timegrid-slot-label { vertical-align: top; }
+/* 오늘 열: 노란색 대신 아주 옅은 파랑 */
+.fc-timegrid .fc-day-today { background: #f5f7ff !important; }
+/* 일정 카드: 연한 바탕 + 왼쪽 색 띠 + 제목·시간 */
+.fc-timegrid .fc-timegrid-event { background: color-mix(in srgb, var(--ev, #4361ee) 14%, white) !important; border: none !important; border-left: 4px solid var(--ev, #4361ee) !important; border-radius: 8px !important; box-shadow: none !important; margin: 1px 3px 1px 2px; }
+.fc-timegrid .fc-timegrid-event .fc-event-main { color: color-mix(in srgb, var(--ev, #4361ee) 70%, black) !important; padding: 5px 7px; }
+.wk-ev { display: flex; flex-direction: column; gap: 2px; line-height: 1.25; overflow: hidden; }
+.wk-ev b { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk-ev span { font-size: 0.82rem; opacity: .85; }
+/* 지금 시각 선 */
+.fc .fc-timegrid-now-indicator-line { border-color: #7c3aed; border-width: 2px 0 0; }
+.fc .fc-timegrid-now-indicator-arrow { border-color: #7c3aed; border-bottom-color: transparent; border-top-color: transparent; }
+@media (max-width: 768px) {
+    .wk-dow { font-size: 0.75rem; } .wk-num { font-size: 1rem; width: 28px; height: 28px; }
+    .wk-ev b { font-size: 0.75rem; } .wk-ev span { display: none; }
+    .fc-timegrid .fc-timegrid-event .fc-event-main { padding: 3px 4px; }
+}
+/* 주간 보기: 진한 칸 선을 연하게, 바깥 테두리 없애기 */
+.fc-timegrid.fc-theme-standard td, .fc-timegrid.fc-theme-standard th,
+.fc .fc-timegrid td, .fc .fc-timegrid th { border-color: #edf0f5 !important; }
+.fc .fc-timegrid .fc-scrollgrid { border: none !important; }
+.fc .fc-timegrid .fc-col-header-cell { border-bottom: 1px solid #e2e8f0 !important; }
+.fc .fc-timegrid-slot-label { border-color: transparent !important; }
+@media (max-width: 768px) {
+    .wk-ev b { white-space: normal; word-break: break-all; font-size: 0.72rem; line-height: 1.2; }
+    .fc-timegrid .fc-timegrid-event { border-left-width: 3px !important; margin: 1px; }
+    .fc-timegrid .fc-timegrid-event .fc-event-main { padding: 3px 2px 3px 3px; }
+}
