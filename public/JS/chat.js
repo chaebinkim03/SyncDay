@@ -127,6 +127,10 @@ const chatWidgetCode = `
     .chat-options input[type="number"] { width: 62px; }
     .chat-footer .pin-btn { width: 36px; height: 36px; font-size: 1.15rem; }
     .retry-btn { font-size: 0.95rem !important; padding: 8px 14px !important; }
+    .multi-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .chat-body .multi-actions button { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .chat-body .multi-split { background: #4361ee; color: #fff; border: none; }
+    .chat-body .multi-go { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
     .chat-toast { font-size: 1rem; }
     @media (max-width: 768px) {
         #chat-window { height: min(580px, calc(100dvh - 220px)); }
@@ -157,7 +161,7 @@ const chatWidgetCode = `
             <input type="text" id="chat-input" placeholder="목표 입력 (예: 토익 800점 달성)" maxlength="200">
             <div class="chat-options">
                 <label>마감일 <input type="date" id="chat-deadline"></label>
-                <label>하루 <input type="number" id="chat-minutes" min="10" max="480" step="10" placeholder="60" inputmode="numeric" aria-label="하루 투자 시간(분)">분</label>
+                <label>하루 <input type="number" id="chat-minutes" min="10" max="480" step="10" inputmode="numeric" aria-label="하루 투자 시간(분)">분</label>
                 <button type="button" id="chat-minutes-pin" class="pin-btn" aria-pressed="false" title="이 시간을 고정해요">☆</button>
             </div>
             <button id="send-btn">계획 만들기</button>
@@ -515,7 +519,17 @@ function getPending() { try { return JSON.parse(sessionStorage.getItem('chatPend
 
 let lastRequest = null;
 
-async function sendMessage(retryReq) {
+// 목표가 여러 개로 보이는지 (예: "토익 800점이랑 운전면허 필기", "운동, 독서")
+// → 하나로 묶이면 목표별로 관리하기 어려우니 먼저 안내만 함 (그대로 진행도 가능)
+function looksLikeMultipleGoals(text) {
+    const t = ' ' + text.replace(/\s+/g, ' ') + ' ';
+    if (/[,，\/+&]|그리고|및 /.test(t)) return true;
+    if (/\S(이랑|랑) \S/.test(t)) return true;
+    if (/\S하고 (?!싶)\S/.test(t)) return true;
+    return false;
+}
+
+async function sendMessage(retryReq, opts = {}) {
     const req = retryReq || {
         goal: chatInput.value.trim(),
         deadline: deadlineInput.value,
@@ -525,6 +539,12 @@ async function sendMessage(retryReq) {
     if (!goal || isPlanning) return;
     if (!deadline) { addAiMessage('마감일을 선택해 주세요.', true); return; }
     if (!minutesPerDay) { addAiMessage('하루에 쓸 시간을 10분~480분(8시간) 사이로 입력해 주세요.', true); minutesInput.focus(); return; }
+    if (!retryReq && !opts.skipMultiCheck && looksLikeMultipleGoals(goal)) {
+        addAiMessage(`목표가 여러 개인 것 같아요. 하나씩 따로 입력하면 목표마다 진행률과 마감을 따로 관리할 수 있어요.`
+            + `<div class="multi-actions"><button type="button" class="multi-split">하나씩 입력할게요</button>`
+            + `<button type="button" class="multi-go">그대로 하나로 만들기</button></div>`);
+        return;
+    }
 
     isPlanning = true;
     sendBtn.disabled = true;
@@ -588,6 +608,19 @@ async function sendMessage(retryReq) {
         saveState();
     }
 }
+
+// 여러 목표 안내의 버튼
+chatMessages.addEventListener('click', (e) => {
+    const split = e.target.closest('.multi-split');
+    const go = e.target.closest('.multi-go');
+    if (!split && !go) return;
+    const box = e.target.closest('.multi-actions');
+    if (box) box.remove();
+    saveState();
+    if (split) { chatInput.focus(); chatInput.select(); return; }
+    if (!chatInput.value.trim()) { addAiMessage('목표를 다시 입력해 주세요.', true); return; }
+    sendMessage(null, { skipMultiCheck: true });
+});
 
 // '다시 시도' 버튼 (저장된 대화에서도 동작하도록 위임)
 chatMessages.addEventListener('click', (e) => {
