@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     restReady.finally(() => { try { initMiniCalendar(); } catch(e) { console.error("캘린더 로딩 에러:", e); } });
     try { updateRoutineProgress(); } catch(e) { console.error("달성도 및 루틴 로딩 에러:", e); }
     try { loadWeeklyRecord(); } catch(e) { console.error("완료 기록 로딩 에러:", e); }
-    try { loadUrgentTodos(); } catch(e) { console.error("투두 로딩 에러:", e); }
+    try { loadUrgentTodos(); } catch(e) { console.error("To-do 로딩 에러:", e); }
 });
 
 async function checkSession() {
@@ -284,7 +284,7 @@ async function loadUrgentTodos() {
         });
         if (moreCount) list.insertAdjacentHTML('beforeend', `<li class="home-todo-more"><a href="todo.html">+${moreCount}개 더 보기 ›</a></li>`);
     } catch(e) {
-        console.error('긴급 투두 로딩 에러', e);
+        console.error('긴급 To-do 로딩 에러', e);
     }
 }
 

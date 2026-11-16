@@ -155,7 +155,7 @@ const chatWidgetCode = `
             <button class="close-btn" id="close-chat">&times;</button>
         </div>
         <div class="chat-body" id="chat-messages">
-            <div class="msg ai-msg">안녕하세요! 목표와 마감일을 알려 주시면 마감일까지 매일 할 일로 나눠서 투두에 넣어 드릴게요.</div>
+            <div class="msg ai-msg">안녕하세요! 목표와 마감일을 알려 주시면 마감일까지 매일 할 일로 나눠서 To-do에 넣어 드릴게요.</div>
         </div>
         <div class="chat-footer">
             <input type="text" id="chat-input" placeholder="목표 입력 (예: 토익 800점 달성)" maxlength="200">
@@ -507,7 +507,7 @@ const baseTitle = document.title;
 function notifyPlanDone(html, { error = false } = {}) {
     if (windowEl.style.display !== 'flex') icon.classList.add('has-new');
     const onTodo = /todo\.html$/.test(location.pathname);
-    showChatToast(html, { error, link: (!error && !onTodo) ? { href: 'todo.html', label: '투두에서 보기' } : null });
+    showChatToast(html, { error, link: (!error && !onTodo) ? { href: 'todo.html', label: 'To-do에서 보기' } : null });
     if (document.hidden) document.title = (error ? '(!) ' : '(1) 계획 완성 · ') + baseTitle;
     if (!error && navigator.vibrate) { try { navigator.vibrate(120); } catch (e) {} }
 }
@@ -590,7 +590,7 @@ async function sendMessage(retryReq, opts = {}) {
             + (phases ? `<div style="margin-top:6px">${phases}</div>` : '')
             + (preview ? `<div style="margin-top:8px"><b>${firstLabel}</b></div><ul class="plan-list">${preview}</ul>` : '')
             + capped
-            + '<small>나머지는 투두 화면에서 날짜가 되면 하나씩 보여 드릴게요.</small>');
+            + '<small>나머지는 To-do 화면에서 날짜가 되면 하나씩 보여 드릴게요.</small>');
         notifyPlanDone(`✅ <b>${escapeHtml(data.goal)}</b> 계획이 완성됐어요!` + (firstTasks.length ? `<br>${escapeHtml(firstLabel)}: ${escapeHtml(firstTasks[0].title)}` : ''));
         refreshPlannerViews();
     } catch (err) {
@@ -652,7 +652,7 @@ window.addEventListener('pagehide', () => { try { if (lastRequest) sessionStorag
             if (data && data.length) {
                 clearInterval(poll); clearInterval(timer); setPending(null);
                 document.getElementById(id)?.remove();
-                addAiMessage(`✅ <b>${escapeHtml(p.goal)}</b> 계획 완성! 투두 화면에서 날짜별 할 일을 확인해 보세요.`);
+                addAiMessage(`✅ <b>${escapeHtml(p.goal)}</b> 계획 완성! To-do 화면에서 날짜별 할 일을 확인해 보세요.`);
                 notifyPlanDone(`✅ <b>${escapeHtml(p.goal)}</b> 계획이 완성됐어요!`);
                 refreshPlannerViews();
                 return;
@@ -661,7 +661,7 @@ window.addEventListener('pagehide', () => { try { if (lastRequest) sessionStorag
         if (Date.now() - p.startedAt > LIMIT) {
             clearInterval(poll); clearInterval(timer); setPending(null);
             document.getElementById(id)?.remove();
-            addAiMessage('화면을 옮기는 사이 계획 결과를 받지 못했어요. 투두 화면에서 확인하거나 다시 시도해 주세요.'
+            addAiMessage('화면을 옮기는 사이 계획 결과를 받지 못했어요. To-do 화면에서 확인하거나 다시 시도해 주세요.'
                 + '<br><button type="button" class="retry-btn">같은 목표로 다시 시도</button>', true);
         }
     };

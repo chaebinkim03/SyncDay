@@ -14,7 +14,7 @@ async function fetchTodos() {
         .order('target_date', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
     
-    if (error) { console.error('투두 불러오기 실패:', error); return; }
+    if (error) { console.error('To-do 불러오기 실패:', error); return; }
     todos = data || [];
 
     const { data: goalData, error: goalError } = await window.supabaseClient
@@ -64,7 +64,7 @@ function showTodoOptions(id) {
     const currentDate = todo.target_date ? todo.target_date.split('T')[0] : new Date().toISOString().split('T')[0];
 
     Swal.fire({
-        title: '투두 관리',
+        title: 'To-do 관리',
         html: `
             <div style="text-align: left; padding: 0 10px;">
                 <label style="font-size: 14px; font-weight: bold; display: block; margin-bottom: 5px;">할 일 내용</label>
