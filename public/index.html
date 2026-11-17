@@ -199,7 +199,9 @@ section.blk{padding-block:96px}
 .member:nth-child(1) .avatar{background:var(--t-blue)} .member:nth-child(2) .avatar{background:var(--t-yellow)} .member:nth-child(3) .avatar{background:var(--t-green)}
 .member b{display:block;font-size:17px}
 .member span{font-size:13.5px;color:var(--fg-3)}
-@media (max-width:520px){.team{grid-template-columns:minmax(0,1fr)}.member{display:flex;align-items:center;gap:14px;text-align:left;padding:14px}.avatar{margin:0;width:52px;height:52px;font-size:20px}}
+.member .role{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:5px}
+.member .role li{font-size:14.5px;color:var(--fg-2);line-height:1.45}
+@media (max-width:520px){.team{grid-template-columns:minmax(0,1fr)}.member{display:flex;align-items:center;gap:14px;text-align:left;padding:14px}.avatar{margin:0;width:52px;height:52px;font-size:20px;flex:none}.member{align-items:flex-start}.member .role{margin-top:8px;padding-top:8px}}
 
 /* cta + footer */
 .cta{padding-block:110px;text-align:center}
@@ -484,9 +486,9 @@ html:not(.motion) .fl{opacity:.95}
     <h2 class="sh">Team 대박징조</h2>
     <p class="sub">목원대학교 컴퓨터융합학부</p>
     <div class="team">
-      <div class="member"><div class="avatar">채빈</div><div><b>김채빈</b><span>팀장</span></div></div>
-      <div class="member"><div class="avatar">유경</div><div><b>김유경</b><span>팀원</span></div></div>
-      <div class="member"><div class="avatar">재우</div><div><b>임재우</b><span>팀원</span></div></div>
+      <div class="member"><div class="avatar">채빈</div><div><b>김채빈</b><span>팀장</span><ul class="role"><li>기획·설계 총괄</li><li>Gemini API 연동</li><li>배포</li></ul></div></div>
+      <div class="member"><div class="avatar">유경</div><div><b>김유경</b><span>팀원</span><ul class="role"><li>백엔드 개발</li><li>문서·발표자료 검수</li></ul></div></div>
+      <div class="member"><div class="avatar">재우</div><div><b>임재우</b><span>팀원</span><ul class="role"><li>프론트엔드 개발</li><li>시장 조사</li><li>서비스 테스트</li></ul></div></div>
     </div>
   </div>
 </section>
