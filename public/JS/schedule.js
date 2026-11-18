@@ -41,6 +41,8 @@ function initCalendar() {
             timeGridWeek: {
                 height: 680,                       // 주간 시간표는 고정 높이 + 안에서 스크롤
                 scrollTime: '08:00:00',            // 처음 열면 오전 8시부터 보이게
+                allDaySlot: true,                  // 여러 날에 걸친 일정·공휴일은 위쪽 '종일' 줄에 막대로
+                allDayText: '종일',
                 nowIndicator: true,                // 지금 시각에 가로선
                 slotLabelFormat: { hour: 'numeric', meridiem: 'short' },
                 dayHeaderContent: function(arg) {  // 머리글: 요일 + 날짜 숫자(오늘은 동그라미)
@@ -68,20 +70,41 @@ function initCalendar() {
 
         eventDidMount: function(info) {
             info.el.style.setProperty('--ev', info.event.backgroundColor || '#4361ee'); // 주간 보기 파스텔 색에 사용
-            const currentMonth = calendar.getDate().getMonth(); 
-            const eventMonth = info.event.start.getMonth(); 
-            if (currentMonth !== eventMonth) {
-                info.el.style.display = 'none';
+            // 월간 보기에서 앞뒤 달 칸에 보이는 일정 처리
+            //  - 달을 넘어가는 일정: 다른 달 부분도 보여 주되 연하게
+            //  - 그 밖의 일정: 이번 달 것만 보여 줌 (예전과 같음)
+            if (info.view.type !== 'dayGridMonth') return;
+            const cur = calendar.getDate();
+            const viewKey = cur.getFullYear() * 12 + cur.getMonth();
+            const xp = info.event.extendedProps || {};
+            if (xp.multiMonth) {
+                if (xp.pieceKey !== viewKey) info.el.classList.add('ev-other-month');
+            } else {
+                const s = info.event.start;
+                if (s.getFullYear() * 12 + s.getMonth() !== viewKey) info.el.style.display = 'none';
             }
         },
 
       // 공휴일(주황색)만 얇은 선으로 뼈대 생성
         eventContent: function(arg) {
             // 주간 보기: 제목 + 시간 (예: 9:00 - 10:30)
+            if (arg.view.type.startsWith('timeGrid') && !isHolidayEvent(arg.event) && arg.event.allDay) {
+                const esc = (x) => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                const xp = arg.event.extendedProps || {};
+                const f = (v) => { const d = new Date(v); return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
+                const range = xp.origStart && xp.origEnd ? `${f(xp.origStart)} - ${f(xp.origEnd)}` : '';
+                return { html: `<div class="wk-allday"><b>${esc(arg.event.title)}</b>${range ? `<span>${range}</span>` : ''}</div>` };
+            }
             if (arg.view.type.startsWith('timeGrid') && !isHolidayEvent(arg.event)) {
                 const t = (d) => d ? `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}` : '';
                 const esc = (x) => String(x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-                return { html: `<div class="wk-ev"><b>${esc(arg.event.title)}</b><span>${t(arg.event.start)} - ${t(arg.event.end)}</span></div>` };
+                const xp = arg.event.extendedProps || {};
+                const st = xp.multiMonth ? new Date(xp.origStart) : arg.event.start;
+                const en = xp.multiMonth && xp.origEnd ? new Date(xp.origEnd) : arg.event.end;
+                const multiDay = st && en && st.toDateString() !== new Date(en.getTime() - 1).toDateString();
+                const md = (d) => `${d.getMonth() + 1}/${d.getDate()} `;
+                const range = multiDay ? `${md(st)}${t(st)} - ${md(en)}${t(en)}` : `${t(st)} - ${t(en)}`;
+                return { html: `<div class="wk-ev"><b>${esc(arg.event.title)}</b><span>${range}</span></div>` };
             }
             if (isHolidayEvent(arg.event)) {
                 return {
@@ -132,20 +155,28 @@ function initCalendar() {
                         filteredData = data.filter(item => item.color === currentFilterColor);
                     }
                     
-                    const events = filteredData.map(item => {
+                    const events = [];
+                    filteredData.forEach(item => {
                         const localStart = item.start_time ? item.start_time.substring(0, 19) : null;
                         const localEnd = item.end_time ? item.end_time.substring(0, 19) : null;
-
-                        return {
-                            id: item.schedule_id, 
-                            title: item.schedule_title, 
-                            start: localStart, 
-                            end: localEnd, 
-                            backgroundColor: item.color || '#4361ee', 
+                        const base = {
+                            id: item.schedule_id,
+                            title: item.schedule_title,
+                            backgroundColor: item.color || '#4361ee',
                             borderColor: item.color || '#4361ee',
                             display: 'block',
-                            allDay: false 
+                            allDay: false
                         };
+                        // 달을 넘어가는 일정은 달마다 조각으로 나눠서 각 달에서도 보이게 함
+                        const pieces = splitByMonth(localStart, localEnd);
+                        const multi = pieces.length > 1;
+                        // 하루를 넘는 일정은 '종일' 막대로 (주간 보기에서 시간 칸을 통째로 덮지 않게)
+                        const multiDay = isMultiDay(localStart, localEnd);
+                        pieces.forEach(p => events.push({
+                            ...base,
+                            ...(multiDay ? toAllDayRange(p.start, p.end) : { start: p.start, end: p.end }),
+                            extendedProps: { origStart: localStart, origEnd: localEnd, multiMonth: multi, multiDay, pieceKey: p.key }
+                        }));
                     });
                     successCallback(events);
                 }
@@ -222,14 +253,18 @@ function initCalendar() {
                 return;
             }
 
-            const startDate = info.event.startStr.split('T')[0];
-            const startTime = info.event.startStr.includes('T') ? info.event.startStr.split('T')[1].substring(0, 5) : '09:00';
+            // 달을 넘어가 조각으로 나뉜 일정이면 원래 시작·끝으로 수정 창을 엶
+            const xp = info.event.extendedProps || {};
+            const startStr = xp.origStart || info.event.startStr;
+            const endStr = xp.origStart ? xp.origEnd : info.event.endStr;
+            const startDate = startStr.split('T')[0];
+            const startTime = startStr.includes('T') ? startStr.split('T')[1].substring(0, 5) : '09:00';
             
             let endDate = startDate;
             let endTime = '10:00';
-            if (info.event.endStr) {
-                endDate = info.event.endStr.split('T')[0];
-                endTime = info.event.endStr.includes('T') ? info.event.endStr.split('T')[1].substring(0, 5) : '10:00';
+            if (endStr) {
+                endDate = endStr.split('T')[0];
+                endTime = endStr.includes('T') ? endStr.split('T')[1].substring(0, 5) : '10:00';
             }
             const knownColors = ['#4361ee', '#e63946', '#2ecc71'];
             const currentColor = knownColors.includes(info.event.backgroundColor) ? info.event.backgroundColor : '#4361ee';
@@ -309,6 +344,40 @@ function restKind(day) {
     const s = getRestSetting();
     if (s.type === 'weekly') return s.days.includes(day) ? 'rest' : null;
     return day === 0 ? 'rest' : day === 6 ? 'sat' : null;
+}
+
+// 시작과 끝이 다른 날인지 (끝이 다음 날 0시 정각이면 같은 날로 봄)
+function isMultiDay(startStr, endStr) {
+    if (!startStr || !endStr) return false;
+    const s = new Date(startStr), e = new Date(new Date(endStr).getTime() - 1);
+    return !isNaN(s) && !isNaN(e) && s.toDateString() !== e.toDateString() && e > s;
+}
+// 시간 있는 범위 → 날짜만 있는 종일 범위 (끝 날짜는 다음 날로: FullCalendar 규칙)
+function toAllDayRange(startStr, endStr) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const d = (x) => `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+    const s = new Date(startStr), last = new Date(new Date(endStr).getTime() - 1);
+    const endExcl = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+    return { start: d(s), end: d(endExcl), allDay: true };
+}
+
+// 'YYYY-MM-DDTHH:mm:ss' 두 개를 받아 달 경계(1일 0시)마다 나눔 → [{ start, end, key(연*12+월) }]
+function splitByMonth(startStr, endStr) {
+    if (!startStr) return [{ start: startStr, end: endStr, key: null }];
+    const s = new Date(startStr), e = endStr ? new Date(endStr) : null;
+    const key = (d) => d.getFullYear() * 12 + d.getMonth();
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (!e || isNaN(s) || isNaN(e) || e <= s || key(s) === key(new Date(e.getTime() - 1))) return [{ start: startStr, end: endStr, key: key(s) }];
+    const out = [];
+    let cur = s;
+    for (let i = 0; i < 24 && cur < e; i++) {
+        const next = new Date(cur.getFullYear(), cur.getMonth() + 1, 1); // 다음 달 1일 0시
+        const end = next < e ? next : e;
+        out.push({ start: fmt(cur), end: fmt(end), key: key(cur) });
+        cur = end;
+    }
+    return out;
 }
 
 document.addEventListener('DOMContentLoaded', () => { ensureRestSetting().finally(initCalendar); }); // 내 휴무일 설정을 불러온 뒤 캘린더 표시

@@ -657,3 +657,27 @@ body .notice-empty { font-size: 16px; }
     body .swal2-actions .swal2-styled { padding: 0.65em 1.3em; }
 }
 body .swal2-html-container button:not(.swal2-styled) { font-size: 15.5px !important; padding: 8px 14px !important; border-radius: 8px !important; }
+
+/* 설정: 회원 탈퇴 (11/18) */
+.btn-danger { padding: 12px 22px; background: #fff; color: #dc2626; border: 1.5px solid #fca5a5; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 1rem; font-family: inherit; }
+.btn-danger:hover { background: #fef2f2; }
+/* 캘린더: 달이 바뀌는 일정의 다른 달 부분은 연하게 (11/18) */
+#calendar .fc-daygrid-event.ev-other-month { opacity: .4; }
+
+/* 주간 보기 가독성 (11/18): 여러 날 일정은 위쪽 '종일' 줄 막대로 */
+.fc-timegrid .fc-timegrid-axis-cushion { font-size: 0.85rem; font-weight: 700; color: #64748b; }
+.fc-timegrid .fc-daygrid-body { background: #fafbff; }
+.fc-timegrid .fc-daygrid-event:not(.holiday-event-wrapper) { background: color-mix(in srgb, var(--ev, #4361ee) 16%, white) !important; border: none !important; border-left: 4px solid var(--ev, #4361ee) !important; border-radius: 7px !important; margin: 2px 3px !important; }
+.fc-timegrid .fc-daygrid-event:not(.holiday-event-wrapper) .fc-event-main { color: color-mix(in srgb, var(--ev, #4361ee) 70%, black) !important; }
+.wk-allday { display: flex; align-items: baseline; gap: 8px; padding: 3px 6px; overflow: hidden; white-space: nowrap; }
+.wk-allday b { font-size: 0.92rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.wk-allday span { font-size: 0.8rem; opacity: .85; }
+.fc-timegrid .fc-timegrid-divider { padding: 0 0 2px; background: #e2e8f0; border: none !important; }
+/* 짧은 일정(30분 이하)은 제목만 한 줄로 */
+.fc-timegrid .fc-timegrid-event-short .wk-ev { flex-direction: row; gap: 6px; }
+.fc-timegrid .fc-timegrid-event-short .wk-ev span { display: none; }
+@media (max-width: 768px) {
+    .wk-allday { padding: 2px 3px; } .wk-allday b { font-size: 0.72rem; } .wk-allday span { display: none; }
+    .fc-timegrid .fc-timegrid-axis-cushion { font-size: 0.7rem; }
+}
+#calendar .fc-timegrid .fc-daygrid-day-frame { min-height: 34px; }

@@ -154,6 +154,41 @@ function openInquiryDetail(index) {
     document.getElementById('inquiry-detail-modal').classList.add('active');
 }
 
+// 회원 탈퇴: 확인 문구('탈퇴')를 입력해야 진행 → DB 함수가 본인 계정·데이터를 모두 삭제
+async function deleteAccount() {
+    const first = await Swal.fire({
+        title: '정말 탈퇴할까요?',
+        html: '계정과 모든 데이터(일정·To-do·루틴·목표·완료 기록·문의)가 <b>삭제되고 되돌릴 수 없어요.</b><br>계속하려면 아래 칸에 <b>탈퇴</b>라고 입력해 주세요.',
+        icon: 'warning',
+        input: 'text',
+        inputPlaceholder: '탈퇴',
+        showCancelButton: true,
+        confirmButtonText: '탈퇴하기',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#dc2626',
+        heightAuto: false,
+        preConfirm: (v) => {
+            if ((v || '').trim() !== '탈퇴') { Swal.showValidationMessage('‘탈퇴’라고 정확히 입력해 주세요.'); return false; }
+            return true;
+        }
+    });
+    if (!first.isConfirmed) return;
+
+    Swal.fire({ title: '탈퇴 처리 중이에요', allowOutsideClick: false, heightAuto: false, didOpen: () => Swal.showLoading() });
+    const { error } = await window.supabaseClient.rpc('syncday_delete_my_account');
+    if (error) {
+        console.error('회원 탈퇴 실패:', error);
+        Swal.fire({ title: '탈퇴하지 못했어요', text: '잠시 후 다시 시도하거나 1:1 문의로 알려 주세요.', icon: 'error', heightAuto: false });
+        return;
+    }
+    // 브라우저에 남은 기록도 정리
+    try { sessionStorage.clear(); } catch (e) {}
+    try { Object.keys(localStorage).filter(k => /^(userRestSetting|chatMinutesPin)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    await window.supabaseClient.auth.signOut().catch(() => {});
+    await Swal.fire({ title: '탈퇴가 완료됐어요', text: '그동안 Sync Day를 이용해 주셔서 감사합니다.', icon: 'success', confirmButtonText: '확인', confirmButtonColor: '#4361ee', heightAuto: false });
+    window.location.href = '../index.html';
+}
+
 // 인증 해제 및 리다이렉트
 async function logout() {
     // 다른 계정으로 로그인했을 때 이전 챗봇 대화가 보이지 않도록 지움
