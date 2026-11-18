@@ -168,6 +168,8 @@ function renderCoach() {
     const box = document.getElementById('coach-section');
     if (!box) return;
     const list = coachCandidates();
+    const p = getSplitPending();
+    const splitting = p && Date.now() - p.startedAt < 90000 ? p : null;
     box.hidden = list.length === 0;
     box.innerHTML = list.map(t => {
         const reason = (t.postpone_count || 0) >= 2
@@ -176,24 +178,41 @@ function renderCoach() {
         return `<div class="coach-card">
             <span class="coach-icon" aria-hidden="true">⏳</span>
             <div class="coach-text"><strong>${reason}</strong><span>부담이 커서 그럴 수 있어요. AI가 바로 시작할 수 있는 작은 단계로 나눠 드릴까요?</span></div>
-            <button class="coach-btn" onclick="splitTask(${t.task_id}, this)">AI로 작게 나누기</button>
+            ${splitting && splitting.taskId === t.task_id
+                ? `<button class="coach-btn" disabled>나누는 중...</button>`
+                : `<button class="coach-btn" onclick="splitTask(${t.task_id}, this)">AI로 작게 나누기</button>`}
         </div>`;
     }).join('');
 }
 
+// 나누는 중인 할 일 표시 (다른 화면으로 가도 이어서 확인하려고 sessionStorage에 기록)
+function getSplitPending() { try { return JSON.parse(sessionStorage.getItem('splitPending')); } catch (e) { return null; } }
+function setSplitPending(v) { try { v ? sessionStorage.setItem('splitPending', JSON.stringify(v)) : sessionStorage.removeItem('splitPending'); } catch (e) {} }
+
 async function splitTask(taskId, btn) {
+    const pending = getSplitPending();
+    if (pending && Date.now() - pending.startedAt < 90000) {
+        Swal.fire({ title: '나누는 중이에요', text: '다른 할 일을 나누고 있어요. 끝나면 알려 드릴게요.', icon: 'info', heightAuto: false });
+        return;
+    }
     if (btn) { btn.disabled = true; btn.textContent = '나누는 중...'; }
     if (typeof ensureRestSetting === 'function') await ensureRestSetting();
     const restDays = typeof getRestDays === 'function' ? getRestDays() : [0, 6];
+    const task = todos.find(t => t.task_id === taskId);
+    setSplitPending({ taskId, title: task ? task.task_content : '', startedAt: Date.now() });
     try {
-        const { data, error } = await window.supabaseClient.functions.invoke('decompose-goal', {
-            body: { mode: 'split', taskId, today: todayString(), restDays }
+        // keepalive: 다른 화면으로 이동해도 요청이 끊기지 않고 서버에서 끝까지 처리됨
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) throw new Error('로그인이 필요해요. 다시 로그인해 주세요.');
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/decompose-goal`, {
+            method: 'POST',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+            body: JSON.stringify({ mode: 'split', taskId, today: todayString(), restDays })
         });
-        if (error) {
-            let message = '할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.';
-            try { const body = await error.context.json(); if (body && body.error) message = body.error; } catch (e) {}
-            throw new Error(message);
-        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || '할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.');
+        setSplitPending(null);
         const items = data.steps.map(s => {
             const [, m, d] = s.date.split('-').map(Number);
             return `<li style="margin: 4px 0;"><b>${m}/${d}</b> ${escapeTodoHtml(s.title)} · ${s.minutes}분</li>`;
@@ -205,6 +224,7 @@ async function splitTask(taskId, btn) {
         });
         fetchTodos();
     } catch (e) {
+        setSplitPending(null);
         console.error('미루기 코칭 오류:', e);
         Swal.fire({ title: '나누지 못했어요', text: e.message, icon: 'error', heightAuto: false });
         if (btn) { btn.disabled = false; btn.textContent = 'AI로 작게 나누기'; }

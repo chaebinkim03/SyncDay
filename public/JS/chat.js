@@ -671,3 +671,36 @@ window.addEventListener('pagehide', () => { try { if (lastRequest) sessionStorag
 
 sendBtn.addEventListener('click', () => sendMessage());
 chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+// 미루기 코칭(AI로 작게 나누기)을 누른 뒤 다른 화면으로 이동했다면: 새 화면에서 결과를 확인해 알려 줌
+// (요청은 keepalive로 보내서 화면을 옮겨도 서버에서 끝까지 처리됨 → 원래 할 일이 지워지면 완료)
+(function resumeSplit() {
+    let p = null;
+    try { p = JSON.parse(sessionStorage.getItem('splitPending')); } catch (e) {}
+    if (!p || !p.taskId || !window.supabaseClient) return;
+    const clear = () => { try { sessionStorage.removeItem('splitPending'); } catch (e) {} };
+    const name = p.title ? `'${escapeHtml(p.title)}'` : '할 일';
+    const last = (p.title || '할 일').trim().slice(-1).charCodeAt(0) - 0xAC00;
+    const eul = last >= 0 && last <= 11171 ? (last % 28 ? '을' : '를') : '을(를)';
+    const onTodo = /todo\.html$/.test(location.pathname);
+    const timer = setInterval(async () => {
+        let cur = null;
+        try { cur = JSON.parse(sessionStorage.getItem('splitPending')); } catch (e) {}
+        if (!cur || cur.taskId !== p.taskId) { clearInterval(timer); return; } // 같은 화면에서 이미 처리됨
+        const { data, error } = await window.supabaseClient.from('ai_subtasks').select('task_id').eq('task_id', p.taskId);
+        if (error) return;
+        if (data.length === 0) { // 원래 할 일이 지워짐 = 작게 나누기 완료
+            clearInterval(timer); clear();
+            const { data: steps } = await window.supabaseClient.from('ai_subtasks').select('task_id')
+                .gte('created_at', new Date(p.startedAt - 10000).toISOString());
+            const n = steps ? steps.length : 0;
+            showChatToast(`✅ ${name}${eul} ${n ? `${n}단계로` : '작게'} 나눠 다시 배치했어요.`,
+                { link: onTodo ? null : { href: 'todo.html', label: 'To-do에서 보기' } });
+            if (typeof fetchTodos === 'function') fetchTodos();
+        } else if (Date.now() - p.startedAt > 90000) { // 90초가 지나도 그대로면 실패로 봄
+            clearInterval(timer); clear();
+            showChatToast(`${name}${eul} 나누지 못했어요. To-do 화면에서 다시 시도해 주세요.`, { error: true });
+            if (typeof fetchTodos === 'function') fetchTodos();
+        }
+    }, 2500);
+})();
