@@ -49,7 +49,8 @@ function initMiniCalendar() {
     miniCalendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
-        height: '100%',
+        height: 'auto',          // 6주가 모두 보이게 내용 높이에 맞춤 (아래 줄 잘림·오른쪽 빈칸 방지)
+        fixedWeekCount: false,   // 그 달에 필요한 주만 (5주 또는 6주)
         headerToolbar: { left: 'title', right: 'prev,next' }, 
         
         googleCalendarApiKey: 'AIzaSyCdgnHAhrQP9XuUFzMwbl0E-2ezWXZYQkw', 
@@ -91,7 +92,12 @@ function initMiniCalendar() {
             },
             async function(info, successCallback, failureCallback) {
                 try {
-                    const { data, error } = await window.supabaseClient.from('recommended_schedules').select('*');
+                    // 달을 넘길 때마다 다시 불러오지 않음 → 깜빡임 없음
+                    let data = window.__miniScheduleCache, error = null;
+                    if (!data) {
+                        ({ data, error } = await window.supabaseClient.from('recommended_schedules').select('*'));
+                        if (!error) window.__miniScheduleCache = data || [];
+                    }
                     if (error) { failureCallback(error); } 
                     else {
                         const events = data.map(item => {
@@ -275,7 +281,9 @@ async function loadUrgentTodos() {
             li.setAttribute('role', 'checkbox');
             li.setAttribute('aria-checked', task.is_completed ? 'true' : 'false');
             li.tabIndex = 0;
-            li.innerHTML = `<span class="home-todo-box" aria-hidden="true"></span><span class="home-todo-text"></span>${overdue}`;
+            const splitMark = typeof getSplitMarks === 'function' && getSplitMarks()[task.task_id] !== undefined
+                ? '<span class="split-badge" title="미룬 할 일을 AI가 작게 나눈 단계">✂ 작게 나눔</span>' : '';
+            li.innerHTML = `<span class="home-todo-box" aria-hidden="true"></span><span class="home-todo-text"></span>${splitMark}${overdue}`;
             li.querySelector('.home-todo-text').textContent = task.task_content;
             const toggle = () => toggleHomeTodo(task, li);
             li.addEventListener('click', toggle);

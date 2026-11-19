@@ -54,3 +54,18 @@ async function saveRestSetting(setting) {
     if (!restUserId) return { error: new Error('로그인이 필요해요.') };
     return window.supabaseClient.from('profiles').upsert({ id: restUserId, rest_setting: value });
 }
+
+// AI로 작게 나눈 할 일 표시: { task_id: 원래 할 일 이름 } (이 브라우저에 저장)
+function getSplitMarks() {
+    try { return JSON.parse(localStorage.getItem('syncdaySplitTasks')) || {}; } catch (e) { return {}; }
+}
+// sinceMs 이후 새로 생긴 할 일 중 나눈 단계(titles)를 표시. titles가 없으면 그때 생긴 것 전부
+async function markSplitTasks(sinceMs, original, titles) {
+    try {
+        const { data } = await window.supabaseClient.from('ai_subtasks')
+            .select('task_id, task_content').gte('created_at', new Date(sinceMs - 10000).toISOString());
+        const marks = getSplitMarks();
+        (data || []).filter(r => !titles || titles.includes(r.task_content)).forEach(r => { marks[r.task_id] = original || ''; });
+        localStorage.setItem('syncdaySplitTasks', JSON.stringify(marks));
+    } catch (e) { console.warn('나눈 단계 표시 저장 실패:', e); }
+}

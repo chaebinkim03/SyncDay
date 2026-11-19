@@ -23,6 +23,9 @@ function readScheduleForm(prefix, colorName) {
     return { schedule_title: title, start_time: `${sDate}T${sTime}:00`, end_time: `${eDate}T${eTime}:00`, color };
 }
 
+// 불러온 일정 목록 (추가·수정·삭제하면 비움)
+let scheduleRowsCache = null;
+
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -147,7 +150,12 @@ function initCalendar() {
                 className: 'holiday-event-wrapper' 
             },
             async function(info, successCallback, failureCallback) {
-                const { data, error } = await window.supabaseClient.from('recommended_schedules').select('*');
+                // 달을 넘길 때마다 다시 불러오지 않고, 한 번 불러온 일정을 바로 다시 씀 → 깜빡임 없음
+                let data = scheduleRowsCache, error = null;
+                if (!data) {
+                    ({ data, error } = await window.supabaseClient.from('recommended_schedules').select('*'));
+                    if (!error) scheduleRowsCache = data || [];
+                }
                 if (error) { failureCallback(error); } 
                 else {
                     let filteredData = data;
@@ -241,6 +249,7 @@ function initCalendar() {
                         Swal.fire({ title: '저장하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
                         return;
                     }
+                    scheduleRowsCache = null; // 바뀐 일정을 다시 불러오도록
                     calendar.refetchEvents();
                 }
             });
@@ -315,6 +324,7 @@ function initCalendar() {
                         Swal.fire({ title: '수정하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
                         return;
                     }
+                    scheduleRowsCache = null; // 바뀐 일정을 다시 불러오도록
                     calendar.refetchEvents();
                 } else if (result.isDenied) {
                     // 삭제는 되돌릴 수 없으니 한 번 더 확인
@@ -329,6 +339,7 @@ function initCalendar() {
                         Swal.fire({ title: '삭제하지 못했어요', text: '잠시 후 다시 시도해 주세요.', icon: 'error', heightAuto: false });
                         return;
                     }
+                    scheduleRowsCache = null; // 바뀐 일정을 다시 불러오도록
                     calendar.refetchEvents();
                 }
             });

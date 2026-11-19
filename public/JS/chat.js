@@ -529,6 +529,30 @@ function looksLikeMultipleGoals(text) {
     return false;
 }
 
+// 중복 목표 확인: 아직 마감이 지나지 않은 내 목표 중 같거나 비슷한 것이 있는지
+// (띄어쓰기·기호·대소문자는 무시하고, 한쪽이 다른 쪽을 포함하면 비슷한 목표로 봄)
+function normalizeGoal(text) {
+    return String(text || '').toLowerCase().replace(/[\s.,!?~·\-_'"()\[\]{}<>:;\/\\|+&*#@%^=]/g, '');
+}
+async function findDuplicateGoal(goal) {
+    try {
+        const { data, error } = await window.supabaseClient.from('goals')
+            .select('goal_id, title, deadline')
+            .or(`deadline.gte.${localDateStr()},deadline.is.null`)
+            .order('created_at', { ascending: false }).limit(100);
+        if (error || !data) return null;
+        const g = normalizeGoal(goal);
+        if (!g) return null;
+        return data.find(row => {
+            const t = normalizeGoal(row.title);
+            if (!t) return false;
+            if (t === g) return true;
+            const [shortS, longS] = t.length < g.length ? [t, g] : [g, t];
+            return shortS.length >= 2 && longS.includes(shortS);
+        }) || null;
+    } catch (e) { return null; } // 확인에 실패해도 목표 만들기는 막지 않음
+}
+
 async function sendMessage(retryReq, opts = {}) {
     const req = retryReq || {
         goal: chatInput.value.trim(),
@@ -544,6 +568,20 @@ async function sendMessage(retryReq, opts = {}) {
             + `<div class="multi-actions"><button type="button" class="multi-split">하나씩 입력할게요</button>`
             + `<button type="button" class="multi-go">그대로 하나로 만들기</button></div>`);
         return;
+    }
+    if (!retryReq && !opts.skipDupCheck) {
+        sendBtn.disabled = true;
+        const dup = await findDuplicateGoal(goal);
+        sendBtn.disabled = false;
+        if (dup) {
+            const same = normalizeGoal(dup.title) === normalizeGoal(goal);
+            addAiMessage(`${same ? '이미 같은 목표가 있어요' : '비슷한 목표가 이미 있어요'}: <b>${escapeHtml(dup.title)}</b>`
+                + (dup.deadline ? ` <small>(마감 ${formatDay(dup.deadline)})</small>` : '')
+                + `<br>같은 목표를 또 만들면 To-do에 할 일이 겹쳐서 쌓여요.`
+                + `<div class="multi-actions dup-actions"><button type="button" class="dup-cancel multi-split">기존 목표 그대로 둘게요</button>`
+                + `<button type="button" class="dup-go multi-go">그래도 새로 만들기</button></div>`);
+            return;
+        }
     }
 
     isPlanning = true;
@@ -611,6 +649,7 @@ async function sendMessage(retryReq, opts = {}) {
 
 // 여러 목표 안내의 버튼
 chatMessages.addEventListener('click', (e) => {
+    if (e.target.closest('.dup-actions')) return; // 중복 안내 버튼은 아래에서 처리
     const split = e.target.closest('.multi-split');
     const go = e.target.closest('.multi-go');
     if (!split && !go) return;
@@ -620,6 +659,23 @@ chatMessages.addEventListener('click', (e) => {
     if (split) { chatInput.focus(); chatInput.select(); return; }
     if (!chatInput.value.trim()) { addAiMessage('목표를 다시 입력해 주세요.', true); return; }
     sendMessage(null, { skipMultiCheck: true });
+});
+
+// 중복 목표 안내의 버튼
+chatMessages.addEventListener('click', (e) => {
+    const cancel = e.target.closest('.dup-cancel');
+    const go = e.target.closest('.dup-go');
+    if (!cancel && !go) return;
+    e.target.closest('.dup-actions')?.remove();
+    if (cancel) {
+        chatInput.value = '';
+        addAiMessage('좋아요. 기존 목표의 할 일은 To-do 화면에서 이어서 확인할 수 있어요.');
+        saveState();
+        return;
+    }
+    saveState();
+    if (!chatInput.value.trim()) { addAiMessage('목표를 다시 입력해 주세요.', true); return; }
+    sendMessage(null, { skipMultiCheck: true, skipDupCheck: true });
 });
 
 // '다시 시도' 버튼 (저장된 대화에서도 동작하도록 위임)
@@ -694,6 +750,7 @@ chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessag
             const { data: steps } = await window.supabaseClient.from('ai_subtasks').select('task_id')
                 .gte('created_at', new Date(p.startedAt - 10000).toISOString());
             const n = steps ? steps.length : 0;
+            if (typeof markSplitTasks === 'function') await markSplitTasks(p.startedAt, p.title, null);
             showChatToast(`✅ ${name}${eul} ${n ? `${n}단계로` : '작게'} 나눠 다시 배치했어요.`,
                 { link: onTodo ? null : { href: 'todo.html', label: 'To-do에서 보기' } });
             if (typeof fetchTodos === 'function') fetchTodos();

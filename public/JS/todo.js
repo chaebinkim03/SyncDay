@@ -199,7 +199,8 @@ async function splitTask(taskId, btn) {
     if (typeof ensureRestSetting === 'function') await ensureRestSetting();
     const restDays = typeof getRestDays === 'function' ? getRestDays() : [0, 6];
     const task = todos.find(t => t.task_id === taskId);
-    setSplitPending({ taskId, title: task ? task.task_content : '', startedAt: Date.now() });
+    const startedAt = Date.now();
+    setSplitPending({ taskId, title: task ? task.task_content : '', startedAt });
     try {
         // keepalive: 다른 화면으로 이동해도 요청이 끊기지 않고 서버에서 끝까지 처리됨
         const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -213,6 +214,7 @@ async function splitTask(taskId, btn) {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || '할 일을 나누지 못했어요. 잠시 후 다시 시도해 주세요.');
         setSplitPending(null);
+        if (typeof markSplitTasks === 'function') await markSplitTasks(startedAt, data.original, data.steps.map(s => s.title));
         const items = data.steps.map(s => {
             const [, m, d] = s.date.split('-').map(Number);
             return `<li style="margin: 4px 0;"><b>${m}/${d}</b> ${escapeTodoHtml(s.title)} · ${s.minutes}분</li>`;
@@ -287,11 +289,20 @@ async function deleteGoal(goalId) {
 // 한꺼번에 다 보이면 부담스러우니, 오늘 할 일(+밀린 일)만 펼쳐 보이고 이후 할 일은 목표별로 접어 둠
 function dayOf(t) { return t.target_date ? String(t.target_date).slice(0, 10) : null; }
 
+// AI가 작게 나눈 단계 표시 (어떤 할 일에서 나왔는지 마우스를 올리면 보임)
+function splitBadge(taskId) {
+    const marks = typeof getSplitMarks === 'function' ? getSplitMarks() : {};
+    if (marks[taskId] === undefined) return '';
+    const from = marks[taskId] ? `'${escapeTodoHtml(marks[taskId])}'${josa(marks[taskId], '을', '를')} ` : '';
+    return `<span class="split-badge" title="${from}AI가 작게 나눈 단계">✂ 작게 나눔</span>`;
+}
+
 function todoItemHtml(t) {
     return `<li class="todo-item">
             <input type="checkbox" ${t.is_completed ? 'checked' : ''} onclick="toggleTodo(${t.task_id}, ${t.is_completed})" style="width: 24px; height: 24px; accent-color: #4361ee; cursor: pointer; flex-shrink: 0;">
             ${dateBadge(t.target_date)}
             ${t.postpone_count ? `<span class="postpone-badge" title="미룬 횟수">미룸 ${t.postpone_count}</span>` : ''}
+            ${splitBadge(t.task_id)}
             <span onclick="showTodoOptions(${t.task_id})" style="flex-grow:1; font-size: 17px; cursor: pointer; ${t.is_completed ? 'text-decoration:line-through; color:#aaa;' : 'color:#333;'}">
                 ${escapeTodoHtml(t.task_content)}
             </span>
